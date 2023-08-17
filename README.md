@@ -22,7 +22,7 @@ Interface for singleton initialization. At the time of calling the initializatio
 Example:
 ``` C#
 [AutoRegistry]
-public class ExampleSingleton : DBehaviour, IInitializable
+public class ExampleSingleton : IInitializable
 {
     public void Initialize()
     {
@@ -35,7 +35,7 @@ Interface for the update function. It works the same way as Update in Monobehavi
 Example:
 ``` C#
 [AutoRegistry]
-public class ExampleSingleton : DBehaviour, IUpdatable
+public class ExampleSingleton : IUpdatable
 {
     public void Update()
     {
