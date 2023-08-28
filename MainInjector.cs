@@ -58,7 +58,7 @@ namespace DSystem
 
         private void InitializeDisableBehaviour()
         {
-            var dBehaviours = FindObjectsOfType<DBehaviour>(true).Where(b => b.GetType().GetCustomAttribute<DisableInitializeAttribute>() != null);
+            var dBehaviours = FindObjectsOfType<DBehaviour>(true).Where(b => b.GetType().GetCustomAttribute<DisabledInitializeAttribute>() != null);
             foreach (var dBehaviour in dBehaviours)
             {
                 dBehaviour.DisableInitialize();
