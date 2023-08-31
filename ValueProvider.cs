@@ -19,6 +19,8 @@ namespace DSystem
 
         private T _value;
 
+        private int _pointer;
+
         public static explicit operator T(ValueProvider<T> val) => val._value;
     }
 }

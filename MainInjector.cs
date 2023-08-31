@@ -24,7 +24,7 @@ namespace DSystem
 
             Instance = this;
             
-            InitializeDisableBehaviour();
+            InjectScene();
         }
 
         private void Update()
@@ -56,12 +56,18 @@ namespace DSystem
             }
         }
 
-        private void InitializeDisableBehaviour()
+        private void InjectScene()
         {
-            var dBehaviours = FindObjectsOfType<DBehaviour>(true).Where(b => b.GetType().GetCustomAttribute<DisabledInitializeAttribute>() != null);
-            foreach (var dBehaviour in dBehaviours)
+            var monos = FindObjectsOfType<MonoBehaviour>(true);
+            foreach (var mono in monos)
             {
-                dBehaviour.DisableInitialize();
+                Type type = mono.GetType();
+                if (type.GetCustomAttribute<InjectAttribute>() == null) continue;
+                
+                Inject(type, mono);
+                
+                if (!mono.TryGetComponent(out IDisableInitialize disableInitialize)) continue;
+                disableInitialize.Initialize();
             }
         }
 
@@ -89,12 +95,10 @@ namespace DSystem
             if (type == typeof(System.Object) || type == typeof(MonoBehaviour)) return;
             
             if (type.BaseType != null)
-            {
                 Inject(type.BaseType, instance);
-            }
-            
+
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic
-                                        | BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.SetField);
+                                | BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.SetField);
             
             foreach (var field in fields)
             {
@@ -102,11 +106,72 @@ namespace DSystem
 
                 if (field.FieldType.IsSubclassOf(typeof(Component)))
                 {
-                    field.SetValue(instance, (instance as MonoBehaviour)?.GetComponent(field.FieldType));
+                    field.SetValue(instance, (instance as MonoBehaviour)?.GetComponentInChildren(field.FieldType));
                 } else if (_instances.TryGetValue(field.FieldType, out object obj))
                 {
                     field.SetValue(instance, obj);
                 }
+            }
+
+            var methods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
+
+            MonoEventHandler monoEventHandler = null;
+
+            foreach (MethodInfo method in methods)
+            {
+                ListenerAttribute attr = method.GetCustomAttribute<ListenerAttribute>(false);
+                if (attr == null) continue;
+                
+                if (!TryGetSystem(attr.SingletonType, out object system)) continue;
+                
+                Type providerInterface = attr.SingletonType
+                    .GetInterfaces().Where(t => t.GetCustomAttribute<ProviderInterfaceAttribute>() != null)
+                    .FirstOrDefault(t => t.GetGenericArguments()[0] == attr.DataType);
+                
+                if (providerInterface == default) continue;
+                
+                MethodInfo[] methodsProvider = providerInterface.GetMethods();
+                MethodInfo subscribeMethod = methodsProvider.FirstOrDefault(m => m.GetCustomAttribute<SubscribeAttribute>() != null);
+                MethodInfo unSubscribeMethod = methodsProvider.FirstOrDefault(m => m.GetCustomAttribute<UnSubscribeAttribute>() != null);
+                
+                Type actionType = typeof(Action<>);
+                actionType = actionType.MakeGenericType(attr.DataType);
+
+                var methodDelegate = Delegate.CreateDelegate(actionType, instance, method);
+                
+                if (attr.DisableSubscriber || (instance as MonoBehaviour).gameObject.activeInHierarchy)
+                    subscribeMethod?.Invoke(system, new object[] { methodDelegate });
+
+                if (ReferenceEquals(monoEventHandler, null))
+                {
+                    GameObject obj = (instance as MonoBehaviour).gameObject;
+                    if (obj.TryGetComponent(out MonoEventHandler component))
+                    {
+                        monoEventHandler = component;
+                    }
+                    else
+                    {
+                        monoEventHandler = obj.AddComponent<MonoEventHandler>();
+                    }
+                }
+
+                if (!attr.DisableSubscriber)
+                {
+                    monoEventHandler.EnableEvent += () =>
+                    {
+                        subscribeMethod?.Invoke(system, new object[] { methodDelegate });
+                    };
+
+                    monoEventHandler.DisableEvent += () =>
+                    {
+                        unSubscribeMethod?.Invoke(system, new object[] { methodDelegate });
+                    };
+                }
+
+                monoEventHandler.DestroyEvent += () =>
+                {
+                    unSubscribeMethod?.Invoke(system, new object[] { methodDelegate });
+                };
             }
         }
 
