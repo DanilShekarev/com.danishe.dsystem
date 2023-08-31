@@ -1,7 +1,7 @@
 ﻿namespace DSystem.Interfaces
 {
-    public interface IDisableInitialize : IInitializable
+    public interface IDisableInitialize
     {
-        new void Initialize();
+        void Initialize();
     }
 }

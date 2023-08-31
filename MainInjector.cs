@@ -112,67 +112,6 @@ namespace DSystem
                     field.SetValue(instance, obj);
                 }
             }
-
-            var methods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
-
-            MonoEventHandler monoEventHandler = null;
-
-            foreach (MethodInfo method in methods)
-            {
-                ListenerAttribute attr = method.GetCustomAttribute<ListenerAttribute>(false);
-                if (attr == null) continue;
-                
-                if (!TryGetSystem(attr.SingletonType, out object system)) continue;
-                
-                Type providerInterface = attr.SingletonType
-                    .GetInterfaces().Where(t => t.GetCustomAttribute<ProviderInterfaceAttribute>() != null)
-                    .FirstOrDefault(t => t.GetGenericArguments()[0] == attr.DataType);
-                
-                if (providerInterface == default) continue;
-                
-                MethodInfo[] methodsProvider = providerInterface.GetMethods();
-                MethodInfo subscribeMethod = methodsProvider.FirstOrDefault(m => m.GetCustomAttribute<SubscribeAttribute>() != null);
-                MethodInfo unSubscribeMethod = methodsProvider.FirstOrDefault(m => m.GetCustomAttribute<UnSubscribeAttribute>() != null);
-                
-                Type actionType = typeof(Action<>);
-                actionType = actionType.MakeGenericType(attr.DataType);
-
-                var methodDelegate = Delegate.CreateDelegate(actionType, instance, method);
-                
-                if (attr.DisableSubscriber || (instance as MonoBehaviour).gameObject.activeInHierarchy)
-                    subscribeMethod?.Invoke(system, new object[] { methodDelegate });
-
-                if (ReferenceEquals(monoEventHandler, null))
-                {
-                    GameObject obj = (instance as MonoBehaviour).gameObject;
-                    if (obj.TryGetComponent(out MonoEventHandler component))
-                    {
-                        monoEventHandler = component;
-                    }
-                    else
-                    {
-                        monoEventHandler = obj.AddComponent<MonoEventHandler>();
-                    }
-                }
-
-                if (!attr.DisableSubscriber)
-                {
-                    monoEventHandler.EnableEvent += () =>
-                    {
-                        subscribeMethod?.Invoke(system, new object[] { methodDelegate });
-                    };
-
-                    monoEventHandler.DisableEvent += () =>
-                    {
-                        unSubscribeMethod?.Invoke(system, new object[] { methodDelegate });
-                    };
-                }
-
-                monoEventHandler.DestroyEvent += () =>
-                {
-                    unSubscribeMethod?.Invoke(system, new object[] { methodDelegate });
-                };
-            }
         }
 
         internal void RegistryInjection(object instance)
@@ -187,6 +126,18 @@ namespace DSystem
             if (_instances.TryGetValue(type, out object ret))
             {
                 system = ret;
+                return true;
+            }
+
+            system = default;
+            return false;
+        }
+        
+        public bool TryGetSystem<T>(out T system)
+        {
+            if (_instances.TryGetValue(typeof(T), out object ret))
+            {
+                system = (T)ret;
                 return true;
             }
 
