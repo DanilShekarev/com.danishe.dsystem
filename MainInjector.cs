@@ -18,6 +18,8 @@ namespace DSystem
 
         private void Awake()
         {
+            DontDestroyOnLoad(gameObject);
+            
             _instances = new Dictionary<Type, object>();
             _updatables = new List<IUpdatable>();
             Configure();
