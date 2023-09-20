@@ -5,6 +5,7 @@ using System.Reflection;
 using DSystem.Attributes;
 using DSystem.Interfaces;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace DSystem
 {
@@ -26,6 +27,13 @@ namespace DSystem
 
             Instance = this;
             
+            SceneManager.sceneLoaded += LoadedScene;
+            
+            InjectScene();
+        }
+
+        private void LoadedScene(Scene arg0, LoadSceneMode arg1)
+        {
             InjectScene();
         }
 
