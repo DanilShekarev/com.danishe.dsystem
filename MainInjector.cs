@@ -28,8 +28,6 @@ namespace DSystem
             Instance = this;
             
             SceneManager.sceneLoaded += LoadedScene;
-            
-            InjectScene();
         }
 
         private void LoadedScene(Scene arg0, LoadSceneMode arg1)
@@ -47,6 +45,8 @@ namespace DSystem
 
         private void OnDestroy()
         {
+            SceneManager.sceneLoaded -= LoadedScene;
+            
             foreach (var pair in _instances)
             {
                 if (pair.Value is IDisposable disposable)
