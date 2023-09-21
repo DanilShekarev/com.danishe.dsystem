@@ -72,12 +72,16 @@ namespace DSystem
             foreach (var mono in monos)
             {
                 Type type = mono.GetType();
-                if (type.GetCustomAttribute<InjectAttribute>() == null) continue;
                 
-                Inject(type, mono);
-                
-                if (!mono.TryGetComponent(out IDisableInitialize disableInitialize)) continue;
-                disableInitialize.Initialize();
+                if (type.GetCustomAttribute<InjectAttribute>() != null)
+                {
+                    Inject(type, mono);
+                }
+
+                if (mono is IDisableInitialize disableInitialize)
+                {
+                    disableInitialize.Initialize();
+                }
             }
         }
 
