@@ -92,10 +92,10 @@ namespace DSystem
         {
             var instance = Activator.CreateInstance(type);
 
-            RegistryInjection(instance, true);
-        
             _instances.Add(instance.GetType(), instance);
-        
+            
+            RegistryInjection(instance, true);
+
             if (instance is IInitializable startable)
             {
                 startable.Initialize();
