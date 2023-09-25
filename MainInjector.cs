@@ -62,7 +62,10 @@ namespace DSystem
                 .Where(p => p.Item2 != null).OrderBy(p => p.Item2.Order).ToArray();
             foreach (var pair in types)
             {
-                RegistrySingleton(pair.type);
+                if (!_instances.ContainsKey(pair.type))
+                {
+                    RegistrySingleton(pair.type);
+                }
             }
         }
 
@@ -85,11 +88,11 @@ namespace DSystem
             }
         }
 
-        private void RegistrySingleton(Type type)
+        private object RegistrySingleton(Type type)
         {
             var instance = Activator.CreateInstance(type);
 
-            RegistryInjection(instance);
+            RegistryInjection(instance, true);
         
             _instances.Add(instance.GetType(), instance);
         
@@ -102,9 +105,11 @@ namespace DSystem
             {
                 _updatables.Add(updatable);
             }
+
+            return instance;
         }
 
-        private void Inject(Type type, object instance)
+        private void Inject(Type type, object instance, bool systemInjection = false)
         {
             if (type == typeof(System.Object) || type == typeof(MonoBehaviour)) return;
             
@@ -124,15 +129,19 @@ namespace DSystem
                 } else if (_instances.TryGetValue(field.FieldType, out object obj))
                 {
                     field.SetValue(instance, obj);
+                } else if (systemInjection)
+                {
+                    object instanceSystem = RegistrySingleton(field.FieldType);
+                    field.SetValue(instance, instanceSystem);
                 }
             }
         }
 
-        internal void RegistryInjection(object instance)
+        internal void RegistryInjection(object instance, bool isSystem = false)
         {
             Type type = instance.GetType();
 
-            Inject(type, instance);
+            Inject(type, instance, isSystem);
         }
         
         public bool TryGetSystem(Type type, out object system)
