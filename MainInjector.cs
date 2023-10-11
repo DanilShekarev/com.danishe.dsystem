@@ -19,6 +19,12 @@ namespace DSystem
 
         private void Awake()
         {
+            if (Instance != null)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
             DontDestroyOnLoad(gameObject);
             
             _instances = new Dictionary<Type, object>();
@@ -46,12 +52,13 @@ namespace DSystem
         private void OnDestroy()
         {
             SceneManager.sceneLoaded -= LoadedScene;
-            
-            foreach (var pair in _instances)
-            {
-                if (pair.Value is IDisposable disposable)
-                    disposable.Dispose();
-            }
+
+            if (_instances != null)
+                foreach (var pair in _instances)
+                {
+                    if (pair.Value is IDisposable disposable)
+                        disposable.Dispose();
+                }
         }
 
         private void Configure()
