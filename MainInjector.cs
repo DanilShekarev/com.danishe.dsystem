@@ -144,7 +144,7 @@ namespace DSystem
             }
         }
 
-        internal void RegistryInjection(object instance, bool isSystem = false)
+        public void RegistryInjection(object instance, bool isSystem = false)
         {
             Type type = instance.GetType();
 
