@@ -149,6 +149,8 @@ namespace DSystem
             Type type = instance.GetType();
 
             Inject(type, instance, isSystem);
+
+            if (instance is IDisableInitialize ds) ds.Initialize();
         }
         
         public bool TryGetSystem(Type type, out object system)
