@@ -71,9 +71,22 @@ namespace DSystem
             {
                 if (!_instances.ContainsKey(pair.type))
                 {
-                    RegistrySingleton(pair.type);
+                    RegistrySingleton(pair.type, pair.reg);
                 }
             }
+        }
+
+        private object RegisterScriptable(Type type, string scrName)
+        {
+            object instance = Resources.Load(scrName, type);
+            if (instance == null)
+            {
+                Debug.LogWarning($"No find {scrName} of type {type.Name} scriptable instance!");
+                return null;
+            }
+            
+            _instances.Add(type, instance);
+            return instance;
         }
 
         private void InjectScene()
@@ -95,9 +108,17 @@ namespace DSystem
             }
         }
 
-        private object RegistrySingleton(Type type)
+        private object RegistrySingleton(Type type, AutoRegistryAttribute reg = null)
         {
-            var instance = Activator.CreateInstance(type);
+            object instance;
+            reg ??= type.GetCustomAttribute<AutoRegistryAttribute>();
+
+            if (!string.IsNullOrEmpty(reg.NameScriptable))
+            {
+                return RegisterScriptable(type, reg.NameScriptable);
+            }
+            
+            instance = Activator.CreateInstance(type);
 
             _instances.Add(instance.GetType(), instance);
             
