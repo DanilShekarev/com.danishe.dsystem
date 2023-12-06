@@ -27,12 +27,12 @@ namespace DSystem
 
             DontDestroyOnLoad(gameObject);
             
+            Instance = this;
+            
             _instances = new Dictionary<Type, object>();
             _updatables = new List<IUpdatable>();
             Configure();
 
-            Instance = this;
-            
             SceneManager.sceneLoaded += LoadedScene;
         }
 
@@ -74,6 +74,9 @@ namespace DSystem
                     RegistrySingleton(pair.type, pair.reg);
                 }
             }
+
+            int scriptableCount = _instances.Count(i => i.Key.IsSubclassOf(typeof(ScriptableObject)));
+            Debug.Log($"DSystem register {_instances.Count - scriptableCount} systems and {scriptableCount} scriptable objects.");
         }
 
         private object RegisterScriptable(Type type, string scrName)
@@ -182,20 +185,15 @@ namespace DSystem
                 return true;
             }
 
-            system = default;
-            return false;
+            system = RegistrySingleton(type);
+            return system != null;
         }
         
         public bool TryGetSystem<T>(out T system)
         {
-            if (_instances.TryGetValue(typeof(T), out object ret))
-            {
-                system = (T)ret;
-                return true;
-            }
-
-            system = default;
-            return false;
+            bool ret = TryGetSystem(typeof(T), out object objSystem);
+            system = (T)objSystem;
+            return ret;
         }
     }
 }
