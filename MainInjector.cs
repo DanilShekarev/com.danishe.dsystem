@@ -94,6 +94,8 @@ namespace DSystem
 
         private void InjectScene()
         {
+            int counterInject = 0;
+            int counterInited = 0;
             var monos = FindObjectsOfType<MonoBehaviour>(true);
             foreach (var mono in monos)
             {
@@ -102,13 +104,17 @@ namespace DSystem
                 if (type.GetCustomAttribute<InjectAttribute>() != null)
                 {
                     Inject(type, mono);
+                    counterInject++;
                 }
 
                 if (mono is IDisableInitialize disableInitialize)
                 {
+                    if (!mono.enabled) continue;
+                    counterInited++;
                     disableInitialize.Initialize();
                 }
             }
+            Debug.Log($"DSystem inject to {counterInject} and inited {counterInited} objects.");
         }
 
         private object RegistrySingleton(Type type, AutoRegistryAttribute reg = null)
