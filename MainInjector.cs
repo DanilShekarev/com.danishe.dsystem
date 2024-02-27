@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using DSystem.Attributes;
-using DSystem.Interfaces;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -15,6 +13,9 @@ namespace DSystem
         public static MainInjector Instance { get; private set; }
     
         private Dictionary<Type, object> _instances;
+        private Dictionary<Type, Action<object>> _injectWaiters;
+        private Dictionary<Type, List<object>> _listeners;
+        private Dictionary<Type, Action<object>> _listenersCatchers;
         private List<IUpdatable> _updatables;
 
         private void Awake()
@@ -30,6 +31,9 @@ namespace DSystem
             Instance = this;
             
             _instances = new Dictionary<Type, object>();
+            _injectWaiters = new Dictionary<Type, Action<object>>();
+            _listeners = new Dictionary<Type, List<object>>();
+            _listenersCatchers = new Dictionary<Type, Action<object>>();
             _updatables = new List<IUpdatable>();
             Configure();
 
@@ -96,22 +100,19 @@ namespace DSystem
         {
             int counterInject = 0;
             int counterInited = 0;
-            var monos = FindObjectsOfType<MonoBehaviour>(true);
-            foreach (var mono in monos)
+            var dBehaviours = FindObjectsOfType<DBehaviour>(true);
+            foreach (var dBehaviour in dBehaviours)
             {
-                Type type = mono.GetType();
+                Type type = dBehaviour.GetType();
                 
-                if (type.GetCustomAttribute<InjectAttribute>() != null)
-                {
-                    Inject(type, mono);
-                    counterInject++;
-                }
+                Inject(type, dBehaviour);
+                counterInject++;
 
-                if (mono is IDisableInitialize disableInitialize)
+                if (dBehaviour.GetType().GetCustomAttribute<DisableInitializeAttribute>() != null)
                 {
-                    if (!mono.enabled) continue;
+                    if (!dBehaviour.enabled) continue;
                     counterInited++;
-                    disableInitialize.Initialize();
+                    dBehaviour.Initialize();
                 }
             }
             Debug.Log($"DSystem inject to {counterInject} and inited {counterInited} objects.");
@@ -131,7 +132,7 @@ namespace DSystem
 
             _instances.Add(instance.GetType(), instance);
             
-            RegistryInjection(instance, true);
+            RegistryInjection(instance, true, true);
 
             if (instance is IInitializable startable)
             {
@@ -146,7 +147,7 @@ namespace DSystem
             return instance;
         }
 
-        private void Inject(Type type, object instance, bool systemInjection = false)
+        private void Inject(Type type, object instance, bool systemInjection = false, bool isSystem = false)
         {
             if (type == typeof(System.Object) || type == typeof(MonoBehaviour)) return;
             
@@ -158,11 +159,57 @@ namespace DSystem
             
             foreach (var field in fields)
             {
-                if (field.GetCustomAttribute<InjectAttribute>(false) == null) continue;
-
+                // if (field.FieldType.IsGenericType)
+                // {
+                //     var typeGeneric = field.FieldType.GetGenericTypeDefinition();
+                //     if (typeGeneric != typeof(Sender<>)) continue;
+                //     var typeCather = field.FieldType.GetGenericArguments()[0];
+                //     object senderInst = Activator.CreateInstance(field.FieldType);
+                //     
+                //     if (_senders.TryGetValue(typeCather, out List<object> senders))
+                //         senders.Add(senderInst);
+                //     else
+                //         _senders.Add(typeCather, new List<object> {senderInst});
+                //     
+                //     field.SetValue(instance, senderInst);
+                //     continue;
+                // }
+                var injectAttr = field.GetCustomAttribute<InjectAttribute>(false);
+                if (injectAttr == null) continue;
+                
                 if (field.FieldType.IsSubclassOf(typeof(Component)))
                 {
-                    field.SetValue(instance, (instance as MonoBehaviour)?.GetComponentInChildren(field.FieldType));
+                    if (isSystem)
+                    {
+                        void OnInjected(object inst)
+                        {
+                            field.SetValue(instance, inst);
+                            if (string.IsNullOrEmpty(injectAttr.EventName)) return;
+                            var method = type.GetMethod(injectAttr.EventName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance);
+                            method?.Invoke(instance, null);
+                        }
+                        if (_instances.TryGetValue(field.FieldType, out object instanceObj))
+                        {
+                            OnInjected(instanceObj);
+                        }
+                        else
+                        {
+                            if (_injectWaiters.TryGetValue(field.FieldType, out Action<object> eventInst))
+                            {
+                                eventInst += OnInjected;
+                                _injectWaiters.Remove(field.FieldType);
+                                _injectWaiters.Add(field.FieldType, eventInst);
+                            }
+                            else
+                            {
+                                _injectWaiters.Add(field.FieldType, OnInjected);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        field.SetValue(instance, (instance as MonoBehaviour)?.GetComponentInChildren(field.FieldType));
+                    }
                 } else if (_instances.TryGetValue(field.FieldType, out object obj))
                 {
                     field.SetValue(instance, obj);
@@ -174,13 +221,91 @@ namespace DSystem
             }
         }
 
-        public void RegistryInjection(object instance, bool isSystem = false)
+        public void RegistryListener(object listener, Type listenerType)
+        {
+            List<object> listeners;
+            if (_listeners.TryGetValue(listenerType, out List<object> list))
+            {
+                listeners = list;
+            }
+            else
+            {
+                listeners = new List<object>();
+                _listeners.Add(listenerType, listeners);
+            }
+            listeners.Add(listener);
+            
+            if (_listenersCatchers.TryGetValue(listenerType, out Action<object> onCatchListener))
+            {
+                onCatchListener.Invoke(listener);
+            }
+        }
+
+        public void RemoveListener(object listener, Type listenerType)
+        {
+            if (_listeners.TryGetValue(listenerType, out List<object> listeners))
+            {
+                listeners.Remove(listener);
+            }
+        }
+
+        public UnsubscribeToken RegistryListenerCatcher<T>(Action<T> onCatchListener) where T : class
+        {
+            Action<object> subscribe = (listener) =>
+            {
+                onCatchListener?.Invoke(listener as T);
+            };
+            var type = typeof(T);
+            UnsubscribeToken token = new UnsubscribeToken(type, subscribe);
+            if (_listenersCatchers.TryGetValue(type, out Action<object> onCatch))
+            {
+                onCatch += subscribe;
+                _listenersCatchers.Remove(type);
+                _listenersCatchers.Add(type, onCatch);
+                return token;
+            }
+            _listenersCatchers.Add(type, subscribe);
+            return token;
+        }
+
+        internal void RemoveListenerCatcher(Type type, Action<object> catcher)
+        {
+            if (_listenersCatchers.TryGetValue(type, out Action<object> onCatch)) return;
+            onCatch -= catcher;
+            _listenersCatchers.Remove(type);
+            _listenersCatchers.Add(type, onCatch);
+        }
+
+        public void RegistryInjection(object instance, bool forceInitializeSystems = false, bool isSystem = false)
         {
             Type type = instance.GetType();
 
-            Inject(type, instance, isSystem);
+            Inject(type, instance, forceInitializeSystems, isSystem);
 
-            if (instance is IDisableInitialize ds) ds.Initialize();
+            if (instance.GetType().GetCustomAttribute<DisableInitializeAttribute>() != null && instance is DBehaviour dBehaviour)
+            {
+                dBehaviour.Initialize();
+            }
+        }
+
+        public void InvokeListeners<T>(Action<T> action) where T : class
+        {
+            if (!_listeners.TryGetValue(typeof(T), out List<object> listeners)) return;
+            foreach (var listener in listeners)
+            {
+                action.Invoke(listener as T);
+            }
+        }
+
+        public void RegistrySingleton(object instance)
+        {
+            Type type = instance.GetType();
+            _instances.Add(type, instance);
+            
+            if (!_injectWaiters.TryGetValue(type, out Action<object> onInject)) return;
+            
+            onInject?.Invoke(instance);
+            _injectWaiters.Remove(type);
         }
         
         public bool TryGetSystem(Type type, out object system)

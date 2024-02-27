@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DSystem.Attributes
+namespace DSystem
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class AutoRegistryAttribute : Attribute

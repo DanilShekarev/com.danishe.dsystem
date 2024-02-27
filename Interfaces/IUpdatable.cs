@@ -1,4 +1,4 @@
-﻿namespace DSystem.Interfaces
+﻿namespace DSystem
 {
     public interface IUpdatable
     {
