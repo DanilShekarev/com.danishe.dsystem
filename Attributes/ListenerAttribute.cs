@@ -6,10 +6,12 @@ namespace DSystem
     public class ListenerAttribute : Attribute
     {
         internal bool Global { get; private set; }
+        internal bool Up { get; private set; }
         
-        public ListenerAttribute(bool global = true)
+        public ListenerAttribute(bool global = true, bool up = false)
         {
             Global = global;
+            Up = up;
         }
     }
 }

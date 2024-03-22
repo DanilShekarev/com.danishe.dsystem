@@ -34,7 +34,7 @@ namespace DSystem
                 if (registryAttr == null) continue;
                 if (!registryAttr.Global)
                 {
-                    var dBehaviours = GetComponentsInParent<DBehaviour>();
+                    var dBehaviours = registryAttr.Up ? GetComponentsInChildren<DBehaviour>() : GetComponentsInParent<DBehaviour>();
                     foreach (var dBehaviour in dBehaviours)
                     {
                         if (dBehaviour._listeners == null) continue;
@@ -58,20 +58,21 @@ namespace DSystem
                 };
             }
 
-            var registryAttribute = type.GetCustomAttribute<RegistryListenersAttribute>();
-            if (registryAttribute != null)
+            var registryAttributes = type.GetCustomAttributes<RegistryListenersAttribute>();
+            foreach (var registryAttribute in registryAttributes)
             {
                 foreach (var t in registryAttribute.Types)
                 {
                     _listeners ??= new Dictionary<Type, List<object>>();
-                    var listeners = GetComponentsInChildren(t);
+                    var listeners = t.GetCustomAttribute<ListenerAttribute>().Up ? GetComponentsInParent(t) : GetComponentsInChildren(t);
+                    
                     _listeners.Add(t, new List<object>(listeners));
-                    if (_listenerCatchers.TryGetValue(t, out Action<object> onCatch))
+                    
+                    if (_listenerCatchers == null ||
+                        !_listenerCatchers.TryGetValue(t, out Action<object> onCatch)) continue;
+                    foreach (var listener in listeners)
                     {
-                        foreach (var listener in listeners)
-                        {
-                            onCatch?.Invoke(listener);
-                        }
+                        onCatch?.Invoke(listener);
                     }
                 }
             }
