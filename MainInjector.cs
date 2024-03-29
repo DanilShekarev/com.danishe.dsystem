@@ -297,7 +297,7 @@ namespace DSystem
             }
         }
 
-        public IEnumerator<T> ForeachListeners<T>() where T : class
+        public IEnumerable<T> ForeachListeners<T>() where T : class
         {
             if (!_listeners.TryGetValue(typeof(T), out List<object> listeners)) yield break;
             foreach (var l in listeners)
