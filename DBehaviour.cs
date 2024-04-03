@@ -76,7 +76,11 @@ namespace DSystem
                     }
                 }
             }
+
+            OnInitialized();
         }
+        
+        protected virtual void OnInitialized() {}
         
         protected virtual void Awake()
         {
