@@ -7,11 +7,13 @@ namespace DSystem
 {
     public abstract class DBehaviour : MonoBehaviour
     {
+        public bool OnDisableInitialized { get; private set; }
+        
         private bool _initialized;
         
         private Dictionary<Type, List<object>> _listeners;
         private Dictionary<Type, Action<object>> _listenerCatchers;
-
+        
         private Action _onDestroy;
 
         internal void Initialize()
@@ -77,11 +79,16 @@ namespace DSystem
                 }
             }
 
-            OnInitialized();
+            var dia = type.GetCustomAttribute<DisableInitializeAttribute>();
+            if (dia != null)
+            {
+                OnDisableInitialized = true;
+                gameObject.SetActive(true);
+                gameObject.SetActive(false);
+                OnDisableInitialized = false;
+            }
         }
-        
-        protected virtual void OnInitialized() {}
-        
+
         protected virtual void Awake()
         {
             if (!_initialized)
