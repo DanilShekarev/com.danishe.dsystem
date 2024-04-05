@@ -159,21 +159,6 @@ namespace DSystem
             
             foreach (var field in fields)
             {
-                // if (field.FieldType.IsGenericType)
-                // {
-                //     var typeGeneric = field.FieldType.GetGenericTypeDefinition();
-                //     if (typeGeneric != typeof(Sender<>)) continue;
-                //     var typeCather = field.FieldType.GetGenericArguments()[0];
-                //     object senderInst = Activator.CreateInstance(field.FieldType);
-                //     
-                //     if (_senders.TryGetValue(typeCather, out List<object> senders))
-                //         senders.Add(senderInst);
-                //     else
-                //         _senders.Add(typeCather, new List<object> {senderInst});
-                //     
-                //     field.SetValue(instance, senderInst);
-                //     continue;
-                // }
                 var injectAttr = field.GetCustomAttribute<InjectAttribute>(false);
                 if (injectAttr == null) continue;
                 

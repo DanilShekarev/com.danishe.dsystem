@@ -100,6 +100,25 @@ namespace DSystem
             _onDestroy?.Invoke();
         }
 
+        protected Action SubscribeTo<T>(DBehaviour dBehaviour)
+        {
+            if (dBehaviour._listeners == null) return null;
+            var inter = typeof(T);
+            if (!dBehaviour._listeners.TryGetValue(inter, out List<object> listener)) return null;
+            if (!listener.Contains(this))
+            {
+                listener.Add(this);
+                dBehaviour.InvokeCatcher(inter, this);
+            }
+
+            Action remove = () =>
+            {
+                listener?.Remove(this);
+            };
+            _onDestroy += remove;
+            return remove;
+        }
+
         private void InvokeCatcher(Type type, object listener)
         {
             if (_listenerCatchers.TryGetValue(type, out Action<object> onCatch))
