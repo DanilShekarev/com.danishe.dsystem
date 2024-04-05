@@ -121,6 +121,7 @@ namespace DSystem
 
         private void InvokeCatcher(Type type, object listener)
         {
+            if (_listenerCatchers == null) return;
             if (_listenerCatchers.TryGetValue(type, out Action<object> onCatch))
             {
                 onCatch.Invoke(listener);
