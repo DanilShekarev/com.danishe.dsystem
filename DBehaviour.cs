@@ -100,7 +100,7 @@ namespace DSystem
             _onDestroy?.Invoke();
         }
 
-        protected Action SubscribeTo<T>(DBehaviour dBehaviour)
+        public Action SubscribeTo<T>(DBehaviour dBehaviour)
         {
             if (dBehaviour._listeners == null) return null;
             var inter = typeof(T);
