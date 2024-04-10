@@ -104,7 +104,11 @@ namespace DSystem
         {
             dBehaviour._listeners ??= new Dictionary<Type, List<object>>();
             var inter = typeof(T);
-            if (!dBehaviour._listeners.TryGetValue(inter, out List<object> listener)) return null;
+            if (!dBehaviour._listeners.TryGetValue(inter, out List<object> listener))
+            {
+                listener = new List<object>();
+                dBehaviour._listeners.Add(inter, listener);
+            }
             if (!listener.Contains(this))
             {
                 listener.Add(this);
