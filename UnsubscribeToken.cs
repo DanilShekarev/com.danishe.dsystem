@@ -4,18 +4,16 @@ namespace DSystem
 {
     public class UnsubscribeToken : IDisposable
     {
-        private readonly Action<object> _subscribe;
-        private readonly Type _typeListener;
-        
-        internal UnsubscribeToken(Type typeListener, Action<object> subscribe)
+        private readonly Action _remove;
+
+        internal UnsubscribeToken(Action remove)
         {
-            _typeListener = typeListener;
-            _subscribe = subscribe;
+            _remove = remove;
         }
 
         public void Dispose()
         {
-            MainInjector.Instance.RemoveListenerCatcher(_typeListener, _subscribe);
+            _remove?.Invoke();
         }
     }
 }

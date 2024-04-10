@@ -16,6 +16,7 @@ namespace DSystem
         private Dictionary<Type, Action<object>> _injectWaiters;
         private Dictionary<Type, List<object>> _listeners;
         private Dictionary<Type, Action<object>> _listenersCatchers;
+        private Dictionary<Type, Action<object>> _listenersRemoveCatchers;
         private List<IUpdatable> _updatables;
 
         private void Awake()
@@ -34,6 +35,7 @@ namespace DSystem
             _injectWaiters = new Dictionary<Type, Action<object>>();
             _listeners = new Dictionary<Type, List<object>>();
             _listenersCatchers = new Dictionary<Type, Action<object>>();
+            _listenersRemoveCatchers = new Dictionary<Type, Action<object>>();
             _updatables = new List<IUpdatable>();
             Configure();
 
@@ -228,6 +230,10 @@ namespace DSystem
 
         public void RemoveListener(object listener, Type listenerType)
         {
+            if (_listenersRemoveCatchers.TryGetValue(listenerType, out Action<object> action))
+            {
+                action?.Invoke(listener);
+            }
             if (_listeners.TryGetValue(listenerType, out List<object> listeners))
             {
                 listeners.Remove(listener);
@@ -235,30 +241,40 @@ namespace DSystem
         }
 
         public UnsubscribeToken RegistryListenerCatcher<T>(Action<T> onCatchListener) where T : class
+            => RegistryListenerCatcherTarget(onCatchListener, _listenersCatchers);
+
+        public UnsubscribeToken RegistryUnsubscribeListenerCatcher<T>(Action<T> onCatchListener) where T : class
+            => RegistryListenerCatcherTarget(onCatchListener, _listenersRemoveCatchers);
+
+        private UnsubscribeToken RegistryListenerCatcherTarget<T>(Action<T> onAction, 
+            Dictionary<Type, Action<object>> target) where T : class
         {
             Action<object> subscribe = (listener) =>
             {
-                onCatchListener?.Invoke(listener as T);
+                onAction?.Invoke(listener as T);
             };
             var type = typeof(T);
-            UnsubscribeToken token = new UnsubscribeToken(type, subscribe);
-            if (_listenersCatchers.TryGetValue(type, out Action<object> onCatch))
+            UnsubscribeToken token = new UnsubscribeToken(() =>
+            {
+                RemoveListenerCatcher(type, subscribe, target);
+            });
+            if (target.TryGetValue(type, out Action<object> onCatch))
             {
                 onCatch += subscribe;
-                _listenersCatchers.Remove(type);
-                _listenersCatchers.Add(type, onCatch);
+                target.Remove(type);
+                target.Add(type, onCatch);
                 return token;
             }
-            _listenersCatchers.Add(type, subscribe);
+            target.Add(type, subscribe);
             return token;
         }
-
-        internal void RemoveListenerCatcher(Type type, Action<object> catcher)
+        
+        internal void RemoveListenerCatcher(Type type, Action<object> catcher, Dictionary<Type, Action<object>> target)
         {
-            if (_listenersCatchers.TryGetValue(type, out Action<object> onCatch)) return;
+            if (target.TryGetValue(type, out Action<object> onCatch)) return;
             onCatch -= catcher;
-            _listenersCatchers.Remove(type);
-            _listenersCatchers.Add(type, onCatch);
+            target.Remove(type);
+            target.Add(type, onCatch);
         }
 
         public void RegistryInjection(object instance, bool forceInitializeSystems = false, bool isSystem = false)

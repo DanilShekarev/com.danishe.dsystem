@@ -13,6 +13,7 @@ namespace DSystem
         
         private Dictionary<Type, List<object>> _listeners;
         private Dictionary<Type, Action<object>> _listenerCatchers;
+        private Dictionary<Type, Action<object>> _listenerRemoveCatchers;
         
         private Action _onDestroy;
 
@@ -39,8 +40,13 @@ namespace DSystem
                     var dBehaviours = registryAttr.Up ? GetComponentsInChildren<DBehaviour>() : GetComponentsInParent<DBehaviour>();
                     foreach (var dBehaviour in dBehaviours)
                     {
-                        if (dBehaviour._listeners == null) continue;
-                        if (!dBehaviour._listeners.TryGetValue(inter, out List<object> listener)) continue;
+                        if (dBehaviour == this) continue;
+                        dBehaviour._listeners ??= new();
+                        if (!dBehaviour._listeners.TryGetValue(inter, out List<object> listener))
+                        {
+                            listener = new List<object>();
+                            dBehaviour._listeners.Add(inter, listener);
+                        }
                         if (!listener.Contains(this))
                         {
                             listener.Add(this);
@@ -48,7 +54,7 @@ namespace DSystem
                         }
                         _onDestroy += () =>
                         {
-                            listener?.Remove(this);
+                            RemoveListener(listener, this, inter, dBehaviour);
                         };
                     }
                     continue;
@@ -139,6 +145,15 @@ namespace DSystem
             }
         }
 
+        private void RemoveListener(List<object> target, object obj, Type type, DBehaviour parent)
+        {
+            if (parent._listenerRemoveCatchers != null && parent._listenerRemoveCatchers.TryGetValue(type, out Action<object> onCatch))
+            {
+                onCatch?.Invoke(obj);
+            }
+            target?.Remove(obj);
+        }
+
         protected void InvokeListener<T>(Action<T> action) where T : class
         {
             if (!_listeners.TryGetValue(typeof(T), out List<object> listeners)) return;
@@ -150,26 +165,47 @@ namespace DSystem
 
         protected void RegistryCatcher<T>(Action<T> onCatchListener) where T : class
         {
-            _listenerCatchers ??= new Dictionary<Type, Action<object>>();
+            RegistryCatcher<T>(onCatchListener, ref _listenerCatchers);
+        }
+
+        protected void RemoveCatcher<T>()
+        {
+            RemoveCatcher<T>(ref _listenerCatchers);
+        }
+        
+        protected void RegistryUnsubscribeCatcher<T>(Action<T> onCatchListener) where T : class
+        {
+            RegistryCatcher<T>(onCatchListener, ref _listenerRemoveCatchers);
+        }
+
+        protected void RemoveUnsubscribeCatcher<T>()
+        {
+            RemoveCatcher<T>(ref _listenerCatchers);
+        }
+
+        private void RegistryCatcher<T>(Action<T> onCatchListener, ref Dictionary<Type, Action<object>> target)
+            where T : class
+        {
+            target ??= new Dictionary<Type, Action<object>>();
             
             Action<object> subscribe = (listener) =>
             {
                 onCatchListener?.Invoke(listener as T);
             };
             var type = typeof(T);
-            if (_listenerCatchers.TryGetValue(type, out Action<object> onCatch))
+            if (target.TryGetValue(type, out Action<object> onCatch))
             {
                 onCatch += subscribe;
-                _listenerCatchers.Remove(type);
-                _listenerCatchers.Add(type, onCatch);
+                target.Remove(type);
+                target.Add(type, onCatch);
                 return;
             }
-            _listenerCatchers.Add(type, subscribe);
+            target.Add(type, subscribe);
         }
 
-        protected void RemoveCatcher<T>()
+        private void RemoveCatcher<T>(ref Dictionary<Type, Action<object>> target)
         {
-            _listenerCatchers.Remove(typeof(T));
+            target.Remove(typeof(T));
         }
     }
 }
