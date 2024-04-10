@@ -102,7 +102,7 @@ namespace DSystem
 
         public Action SubscribeTo<T>(DBehaviour dBehaviour)
         {
-            if (dBehaviour._listeners == null) return null;
+            dBehaviour._listeners ??= new Dictionary<Type, List<object>>();
             var inter = typeof(T);
             if (!dBehaviour._listeners.TryGetValue(inter, out List<object> listener)) return null;
             if (!listener.Contains(this))
