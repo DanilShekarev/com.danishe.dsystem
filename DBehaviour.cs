@@ -67,9 +67,16 @@ namespace DSystem
                 {
                     _listeners ??= new Dictionary<Type, List<object>>();
                     var listeners = t.GetCustomAttribute<ListenerAttribute>().Up ? GetComponentsInParent(t) : GetComponentsInChildren(t);
-                    
-                    _listeners.Add(t, new List<object>(listeners));
-                    
+
+                    if (_listeners.TryGetValue(t, out List<object> list))
+                    {
+                        list.AddRange(listeners);
+                    }
+                    else
+                    {
+                        _listeners.Add(t, new List<object>(listeners));
+                    }
+
                     if (_listenerCatchers == null ||
                         !_listenerCatchers.TryGetValue(t, out Action<object> onCatch)) continue;
                     foreach (var listener in listeners)
