@@ -28,6 +28,10 @@ namespace DSystem
             if (singletonAttr != null)
             {
                 MainInjector.Instance.RegistrySingleton(this);
+                _onDestroy += () =>
+                {
+                    MainInjector.Instance.RemoveSingleton(this);
+                };
             }
 
             var interfaces = type.GetInterfaces();

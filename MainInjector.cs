@@ -337,6 +337,12 @@ namespace DSystem
             _injectWaiters.Remove(type);
         }
         
+        public void RemoveSingleton(object instance)
+        {
+            Type type = instance.GetType();
+            _instances.Remove(type);
+        }
+        
         public bool TryGetSystem(Type type, out object system)
         {
             if (_instances.TryGetValue(type, out object ret))
