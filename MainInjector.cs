@@ -19,6 +19,8 @@ namespace DSystem
         private Dictionary<Type, Action<object>> _listenersRemoveCatchers;
         private List<IUpdatable> _updatables;
 
+        private MethodInfo _getComponentsInChildrens;
+
         private void Awake()
         {
             if (Instance != null)
@@ -31,6 +33,8 @@ namespace DSystem
             
             Instance = this;
             
+            _getComponentsInChildrens = typeof(Component).GetMethod(nameof(GetComponentsInChildren), new Type[] {typeof(bool)});
+
             _instances = new Dictionary<Type, object>();
             _injectWaiters = new Dictionary<Type, Action<object>>();
             _listeners = new Dictionary<Type, List<object>>();
@@ -158,15 +162,19 @@ namespace DSystem
 
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic
                                 | BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.SetField);
-            
+
             foreach (var field in fields)
             {
                 var injectAttr = field.GetCustomAttribute<InjectAttribute>(false);
                 if (injectAttr == null) continue;
-                
-                if (field.FieldType.IsSubclassOf(typeof(Component)))
+
+                var fType = field.FieldType;
+                if (fType.IsArray) fType = fType.GetElementType();
+                if (fType == null) continue;
+
+                if (fType.IsSubclassOf(typeof(Component)))
                 {
-                    if (isSystem)
+                    if (isSystem | injectAttr.UseGlobal)
                     {
                         void OnInjected(object inst)
                         {
@@ -195,12 +203,23 @@ namespace DSystem
                     }
                     else
                     {
-                        field.SetValue(instance, (instance as MonoBehaviour)?.GetComponentInChildren(field.FieldType));
+                        var m = instance as MonoBehaviour;
+                        if (m == null) continue;
+                        if (field.FieldType.IsArray)
+                        {
+                            var getComponents = _getComponentsInChildrens.MakeGenericMethod(fType);
+                            field.SetValue(instance, getComponents.Invoke(m, new object[] {injectAttr.IncludeInactive}));
+                        }
+                        else
+                        {
+                            field.SetValue(instance, m.GetComponentInChildren(fType, injectAttr.IncludeInactive));
+                        }
+                        
                     }
                 } else if (_instances.TryGetValue(field.FieldType, out object obj))
                 {
                     field.SetValue(instance, obj);
-                } else if (systemInjection)
+                } else if (systemInjection | injectAttr.UseGlobal)
                 {
                     object instanceSystem = RegistrySingleton(field.FieldType);
                     field.SetValue(instance, instanceSystem);
