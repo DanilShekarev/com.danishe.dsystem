@@ -2,12 +2,17 @@
 
 namespace DSystem
 {
+    [Flags]
+    public enum InjectParams
+    {
+        None = 0, IncludeInactive = 1, UseGlobal = 2
+    }
+    
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class InjectAttribute : Attribute
     {
         internal string EventName { get; private set; }
-        internal bool IncludeInactive { get; private set; }
-        internal bool UseGlobal { get; private set; }
+        internal InjectParams Params { get; private set; }
 
         public InjectAttribute() { }
         
@@ -16,19 +21,14 @@ namespace DSystem
             EventName = eventName;
         }
         
-        public InjectAttribute(bool includeInactive)
+        public InjectAttribute(InjectParams @params)
         {
-            IncludeInactive = includeInactive;
-        }
-
-        public InjectAttribute(string eventName, bool useGlobal) : this(eventName)
-        {
-            UseGlobal = useGlobal;
+            Params = @params;
         }
         
-        public InjectAttribute(bool includeInactive, bool useGlobal) : this(includeInactive)
+        public InjectAttribute(string eventName, InjectParams @params) : this(eventName)
         {
-            UseGlobal = useGlobal;
+            Params = @params;
         }
     }
 }

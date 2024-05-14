@@ -174,7 +174,7 @@ namespace DSystem
 
                 if (fType.IsSubclassOf(typeof(Component)))
                 {
-                    if (isSystem | injectAttr.UseGlobal)
+                    if (isSystem | injectAttr.Params.HasFlag(InjectParams.UseGlobal))
                     {
                         void OnInjected(object inst)
                         {
@@ -208,18 +208,18 @@ namespace DSystem
                         if (field.FieldType.IsArray)
                         {
                             var getComponents = _getComponentsInChildrens.MakeGenericMethod(fType);
-                            field.SetValue(instance, getComponents.Invoke(m, new object[] {injectAttr.IncludeInactive}));
+                            field.SetValue(instance, getComponents.Invoke(m, new object[] {injectAttr.Params.HasFlag(InjectParams.IncludeInactive)}));
                         }
                         else
                         {
-                            field.SetValue(instance, m.GetComponentInChildren(fType, injectAttr.IncludeInactive));
+                            field.SetValue(instance, m.GetComponentInChildren(fType, injectAttr.Params.HasFlag(InjectParams.IncludeInactive)));
                         }
                         
                     }
                 } else if (_instances.TryGetValue(field.FieldType, out object obj))
                 {
                     field.SetValue(instance, obj);
-                } else if (systemInjection | injectAttr.UseGlobal)
+                } else if (systemInjection | injectAttr.Params.HasFlag(InjectParams.UseGlobal))
                 {
                     object instanceSystem = RegistrySingleton(field.FieldType);
                     field.SetValue(instance, instanceSystem);
