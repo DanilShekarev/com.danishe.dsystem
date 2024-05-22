@@ -146,6 +146,21 @@ namespace DSystem
             return instance;
         }
 
+        public void RegistrySingleton(object instance)
+        {
+            _instances.Add(instance.GetType(), instance);
+            RegistryInjection(instance, true);
+            if (instance is IInitializable startable)
+            {
+                startable.Initialize();
+            }
+
+            if (instance is IUpdatable updatable)
+            {
+                _updatables.Add(updatable);
+            }
+        }
+
         private void Inject(Type type, object instance, bool systemInjection = false)
         {
             if (type == typeof(System.Object) || type == typeof(MonoBehaviour)) return;
