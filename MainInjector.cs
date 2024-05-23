@@ -161,6 +161,11 @@ namespace DSystem
             }
         }
 
+        public void RemoveSingleton(Type type)
+        {
+            _instances.Remove(type);
+        }
+
         private void Inject(Type type, object instance, bool systemInjection = false)
         {
             if (type == typeof(System.Object) || type == typeof(MonoBehaviour)) return;
