@@ -104,6 +104,8 @@ namespace DSystem
                 gameObject.SetActive(false);
                 OnDisableInitialized = false;
             }
+
+            OnInitialize();
         }
 
         protected virtual void Awake()
@@ -112,9 +114,13 @@ namespace DSystem
                 Initialize();
         }
 
+        protected virtual void OnInitialize() { }
+        protected virtual void OnDispose() { }
+
         protected virtual void OnDestroy()
         {
             _onDestroy?.Invoke();
+            OnDispose();
         }
 
         public Action SubscribeTo<T>(DBehaviour dBehaviour)
