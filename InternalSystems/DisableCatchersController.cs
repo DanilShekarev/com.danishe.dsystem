@@ -5,10 +5,18 @@ using UnityEngine;
 namespace DSystem.InternalSystems
 {
     [AutoRegistry, UsedImplicitly]
-    public class DisableCatchersController
+    public class DisableCatchersController : IInitializable
     {
         private readonly Dictionary<GameObject, DisableCatcher> _disableCatchers = new ();
         private readonly Stack<DisableCatcher> _pool = new();
+
+        private Transform _poolTr;
+        
+        void IInitializable.Initialize()
+        {
+            _poolTr = new GameObject("DisableCatchersPool").transform;
+            Object.DontDestroyOnLoad(_poolTr.gameObject);
+        }
 
         internal DisableCatcher RegistryForceOnDestroy(DBehaviour dBehaviour)
         {
@@ -35,6 +43,7 @@ namespace DSystem.InternalSystems
 
         internal void AddToPool(DisableCatcher disableCatcher)
         {
+            disableCatcher.transform.SetParent(_poolTr);
             _pool.Push(disableCatcher);
         }
     }

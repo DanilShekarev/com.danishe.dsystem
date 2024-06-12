@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.2.6] - 2024-06-12
+
+### Fixed
+
+- Fix pool destroy catchers.
+
 ## [2.2.5] - 2024-06-12
 
 ### Fixed
