@@ -180,34 +180,31 @@ namespace DSystem
                 var fType = field.FieldType;
                 if (fType.IsArray) fType = fType.GetElementType();
                 if (fType == null) continue;
+                
+                void OnInjected(object inst)
+                {
+                    field.SetValue(instance, inst);
+                    if (string.IsNullOrEmpty(injectAttr.EventName)) return;
+                    var method = type.GetMethod(injectAttr.EventName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance);
+                    method?.Invoke(instance, null);
+                }
 
                 if (fType.IsSubclassOf(typeof(Component)))
                 {
                     if (isSystem | injectAttr.Params.HasFlag(InjectParams.UseGlobal))
                     {
-                        void OnInjected(object inst)
-                        {
-                            field.SetValue(instance, inst);
-                            if (string.IsNullOrEmpty(injectAttr.EventName)) return;
-                            var method = type.GetMethod(injectAttr.EventName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance);
-                            method?.Invoke(instance, null);
-                        }
                         if (_instances.TryGetValue(field.FieldType, out object instanceObj))
                         {
                             OnInjected(instanceObj);
+                            var singletonAttr = field.FieldType.GetCustomAttribute<DynamicSingletonAttribute>();
+                            if (singletonAttr != null)
+                            {
+                                RegistryWaiter(field, OnInjected);
+                            }
                         }
                         else
                         {
-                            if (_injectWaiters.TryGetValue(field.FieldType, out Action<object> eventInst))
-                            {
-                                eventInst += OnInjected;
-                                _injectWaiters.Remove(field.FieldType);
-                                _injectWaiters.Add(field.FieldType, eventInst);
-                            }
-                            else
-                            {
-                                _injectWaiters.Add(field.FieldType, OnInjected);
-                            }
+                            RegistryWaiter(field, OnInjected);
                         }
                     }
                     else
@@ -228,11 +225,34 @@ namespace DSystem
                 } else if (_instances.TryGetValue(field.FieldType, out object obj))
                 {
                     field.SetValue(instance, obj);
-                } else if (systemInjection | injectAttr.Params.HasFlag(InjectParams.UseGlobal))
+                } else
                 {
-                    object instanceSystem = RegistrySingleton(field.FieldType);
-                    field.SetValue(instance, instanceSystem);
+                    var singletonAttr = field.FieldType.GetCustomAttribute<DynamicSingletonAttribute>();
+                    if (singletonAttr == null)
+                    {
+                        if (systemInjection | injectAttr.Params.HasFlag(InjectParams.UseGlobal))
+                        {
+                            object instanceSystem = RegistrySingleton(field.FieldType);
+                            field.SetValue(instance, instanceSystem);
+                        }
+                        continue;
+                    }
+                    RegistryWaiter(field, OnInjected);
                 }
+            }
+        }
+
+        private void RegistryWaiter(FieldInfo field, Action<object> action)
+        {
+            if (_injectWaiters.TryGetValue(field.FieldType, out Action<object> eventInst))
+            {
+                eventInst += action;
+                _injectWaiters.Remove(field.FieldType);
+                _injectWaiters.Add(field.FieldType, eventInst);
+            }
+            else
+            {
+                _injectWaiters.Add(field.FieldType, action);
             }
         }
 
@@ -343,19 +363,37 @@ namespace DSystem
             if (!_injectWaiters.TryGetValue(type, out Action<object> onInject)) return;
             
             onInject?.Invoke(instance);
-            _injectWaiters.Remove(type);
+            var singletonAttr = type.GetCustomAttribute<DynamicSingletonAttribute>();
+            if (singletonAttr == null)
+                _injectWaiters.Remove(type);
         }
         
         public void RemoveSingleton(object instance)
         {
             Type type = instance.GetType();
             _instances.Remove(type);
+            
+            if (!_injectWaiters.TryGetValue(type, out Action<object> onInject)) return;
+            
+            var singletonAttr = type.GetCustomAttribute<DynamicSingletonAttribute>();
+            if (singletonAttr == null)
+            {
+                onInject?.Invoke(null);
+            }
         }
         
         public void RemoveSingleton<T>()
         {
             Type type = typeof(T);
             _instances.Remove(type);
+            
+            if (!_injectWaiters.TryGetValue(type, out Action<object> onInject)) return;
+            
+            var singletonAttr = type.GetCustomAttribute<DynamicSingletonAttribute>();
+            if (singletonAttr == null)
+            {
+                onInject?.Invoke(null);
+            }
         }
         
         public bool TryGetSystem(Type type, out object system)

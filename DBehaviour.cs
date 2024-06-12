@@ -25,7 +25,7 @@ namespace DSystem
             
             MainInjector.Instance.RegistryInjection(this);
             var type = GetType();
-            var singletonAttr = type.GetCustomAttribute<SingletonAttribute>(false);
+            var singletonAttr = type.GetCustomAttribute<SingletonAttribute>(true);
             if (singletonAttr != null)
             {
                 MainInjector.Instance.RegistrySingleton(this);
