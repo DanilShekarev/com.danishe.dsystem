@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using DSystem.InternalSystems;
 using UnityEngine;
 
 namespace DSystem
 {
     public abstract class DBehaviour : MonoBehaviour
     {
-        public bool OnDisableInitialized { get; private set; }
-        
         private bool _initialized;
         
         private Dictionary<Type, List<object>> _listeners;
@@ -16,6 +15,8 @@ namespace DSystem
         private Dictionary<Type, Action<object>> _listenerRemoveCatchers;
         
         private Action _onDestroy;
+
+        private DisableCatcher _disableCatcher;
 
         internal void Initialize()
         {
@@ -96,13 +97,10 @@ namespace DSystem
                 }
             }
 
-            var dia = type.GetCustomAttribute<DisableInitializeAttribute>();
-            if (dia != null)
+            if (!gameObject.activeInHierarchy)
             {
-                OnDisableInitialized = true;
-                gameObject.SetActive(true);
-                gameObject.SetActive(false);
-                OnDisableInitialized = false;
+                if (!MainInjector.Instance.TryGetSystem(out DisableCatchersController disableCatchersController)) return;
+                _disableCatcher = disableCatchersController.RegistryForceOnDestroy(this);
             }
 
             OnInitialize();
@@ -112,10 +110,20 @@ namespace DSystem
         {
             if (!_initialized)
                 Initialize();
+            if (_disableCatcher != null)
+            {
+                _disableCatcher.RemoveOnDispose(this);
+                _disableCatcher = null;
+            }
         }
 
         protected virtual void OnInitialize() { }
         protected virtual void OnDispose() { }
+
+        internal void InternalOnDispose()
+        {
+            OnDestroy();
+        }
 
         protected virtual void OnDestroy()
         {

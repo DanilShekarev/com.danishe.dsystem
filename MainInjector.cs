@@ -74,6 +74,13 @@ namespace DSystem
         private void Configure()
         {
             Assembly assembly = Assembly.Load("Assembly-CSharp");
+            Assembly assemblyDSystem = Assembly.Load("DSystem");
+            Configure(assemblyDSystem);
+            Configure(assembly);
+        }
+
+        private void Configure(Assembly assembly)
+        {
             (Type type, AutoRegistryAttribute reg)[] types = assembly.GetTypes()
                 .Select(t => (t, t.GetCustomAttribute<AutoRegistryAttribute>()))
                 .Where(p => p.Item2 != null).OrderBy(p => p.Item2.Order).ToArray();
@@ -86,7 +93,7 @@ namespace DSystem
             }
 
             int scriptableCount = _instances.Count(i => i.Key.IsSubclassOf(typeof(ScriptableObject)));
-            Debug.Log($"DSystem register {_instances.Count - scriptableCount} systems and {scriptableCount} scriptable objects.");
+            Debug.Log($"{assembly.GetName().Name} DSystem register {_instances.Count - scriptableCount} systems and {scriptableCount} scriptable objects.");
         }
 
         private object RegisterScriptable(Type type, string scrName)
@@ -128,6 +135,8 @@ namespace DSystem
         {
             object instance;
             reg ??= type.GetCustomAttribute<AutoRegistryAttribute>();
+
+            if (reg == null) return null;
 
             if (!string.IsNullOrEmpty(reg.NameScriptable))
             {
@@ -340,6 +349,12 @@ namespace DSystem
         public void RemoveSingleton(object instance)
         {
             Type type = instance.GetType();
+            _instances.Remove(type);
+        }
+        
+        public void RemoveSingleton<T>()
+        {
+            Type type = typeof(T);
             _instances.Remove(type);
         }
         
