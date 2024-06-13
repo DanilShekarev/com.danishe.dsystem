@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.2.7] - 2024-06-12
+
+### Fixed
+
+- Auto unsubscribe for dynamic injection instances
+
 ## [2.2.6] - 2024-06-12
 
 ### Fixed

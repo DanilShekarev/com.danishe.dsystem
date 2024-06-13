@@ -116,9 +116,6 @@ namespace DSystem
             var dBehaviours = FindObjectsOfType<DBehaviour>(true);
             foreach (var dBehaviour in dBehaviours)
             {
-                Type type = dBehaviour.GetType();
-                
-                Inject(type, dBehaviour);
                 counterInject++;
 
                 if (dBehaviour.GetType().GetCustomAttribute<DisableInitializeAttribute>() != null)
@@ -183,10 +180,33 @@ namespace DSystem
                 
                 void OnInjected(object inst)
                 {
+                    if (instance == null || (instance is UnityEngine.Object obj && obj == null))
+                    {
+                        if (_injectWaiters.TryGetValue(field.FieldType, out Action<object> eventInst))
+                        {
+                            eventInst -= OnInjected;
+                            _injectWaiters.Remove(field.FieldType);
+                            _injectWaiters.Add(field.FieldType, eventInst);
+                        }
+                        return;
+                    }
                     field.SetValue(instance, inst);
                     if (string.IsNullOrEmpty(injectAttr.EventName)) return;
                     var method = type.GetMethod(injectAttr.EventName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance);
-                    method?.Invoke(instance, null);
+                    try
+                    {
+                        method?.Invoke(instance, null);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError(e);
+                        if (_injectWaiters.TryGetValue(field.FieldType, out Action<object> eventInst))
+                        {
+                            eventInst -= OnInjected;
+                            _injectWaiters.Remove(field.FieldType);
+                            _injectWaiters.Add(field.FieldType, eventInst);
+                        }
+                    }
                 }
 
                 if (fType.IsSubclassOf(typeof(Component)))
@@ -225,6 +245,11 @@ namespace DSystem
                 } else if (_instances.TryGetValue(field.FieldType, out object obj))
                 {
                     field.SetValue(instance, obj);
+                    var singletonAttr = field.FieldType.GetCustomAttribute<DynamicSingletonAttribute>();
+                    if (singletonAttr != null)
+                    {
+                        RegistryWaiter(field, OnInjected);
+                    }
                 } else
                 {
                     var singletonAttr = field.FieldType.GetCustomAttribute<DynamicSingletonAttribute>();
