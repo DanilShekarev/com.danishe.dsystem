@@ -172,7 +172,7 @@ namespace DSystem
             target?.Remove(obj);
         }
 
-        protected void InvokeListener<T>(Action<T> action) where T : class
+        protected void InvokeListeners<T>(Action<T> action) where T : class
         {
             if (!_listeners.TryGetValue(typeof(T), out List<object> listeners)) return;
             foreach (var listener in listeners)

@@ -1,5 +1,16 @@
 ﻿# Changelog
 
+## [2.3.0] - 2024-06-20
+
+### Added
+
+- Add listener catchers
+
+### Changed
+
+- Rewrite readme
+- Rename DBehaviour method InvokeListener to InvokeListeners
+
 ## [2.2.7] - 2024-06-12
 
 ### Fixed

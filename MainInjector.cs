@@ -14,6 +14,7 @@ namespace DSystem
     
         private Dictionary<Type, object> _instances;
         private Dictionary<Type, Action<object>> _injectWaiters;
+        private Dictionary<Type, List<object>> _catchers;
         private Dictionary<Type, List<object>> _listeners;
         private Dictionary<Type, Action<object>> _listenersCatchers;
         private Dictionary<Type, Action<object>> _listenersRemoveCatchers;
@@ -41,6 +42,7 @@ namespace DSystem
             _listenersCatchers = new Dictionary<Type, Action<object>>();
             _listenersRemoveCatchers = new Dictionary<Type, Action<object>>();
             _updatables = new List<IUpdatable>();
+            _catchers = new();
             Configure();
 
             SceneManager.sceneLoaded += LoadedScene;
@@ -281,6 +283,11 @@ namespace DSystem
             }
         }
 
+        public void RegistryListener<T>(object listener) where T : class
+        {
+            RegistryListener(listener, typeof(T));
+        }
+
         public void RegistryListener(object listener, Type listenerType)
         {
             List<object> listeners;
@@ -362,21 +369,75 @@ namespace DSystem
             }
         }
 
+        public void RegistryCatcher<T>(ListenerCatcher<T> listenerCatcher) where T : class
+        {
+            if (!_catchers.TryGetValue(typeof(T), out var catchers))
+            {
+                catchers = new List<object>();
+                _catchers.Add(typeof(T), catchers);
+            }
+            catchers.Add(listenerCatcher);
+        }
+
+        public void RemoveCatcher<T>(ListenerCatcher<T> listenerCatcher) where T : class
+        {
+            if (!_catchers.TryGetValue(typeof(T), out var catchers)) return;
+            catchers.Remove(listenerCatcher);
+        }
+
         public void InvokeListeners<T>(Action<T> action) where T : class
         {
-            if (!_listeners.TryGetValue(typeof(T), out List<object> listeners)) return;
-            foreach (var listener in listeners)
+            var t = typeof(T);
+            if (!_listeners.TryGetValue(t, out List<object> listeners)) return;
+            bool mutable = _catchers.TryGetValue(t, out List<object> catchers);
+            if (mutable)
             {
-                action.Invoke(listener as T);
+                foreach (var listener in listeners)
+                {
+                    T lastCatcher = listener as T;
+                    foreach (var catcher in catchers)
+                    {
+                        var cat = catcher as ListenerCatcher<T>;
+                        cat.Listener = lastCatcher;
+                        lastCatcher = catcher as T;
+                    }
+                    action.Invoke(lastCatcher);
+                }
+            }
+            else
+            {
+                foreach (var listener in listeners)
+                {
+                    action.Invoke(listener as T);
+                }
             }
         }
 
         public IEnumerable<T> ForeachListeners<T>() where T : class
         {
-            if (!_listeners.TryGetValue(typeof(T), out List<object> listeners)) yield break;
-            foreach (var l in listeners)
+            var t = typeof(T);
+            if (!_listeners.TryGetValue(t, out List<object> listeners)) yield break;
+            bool mutable = _catchers.TryGetValue(t, out List<object> catchers);
+            if (mutable)
             {
-                yield return l as T;
+                foreach (var listener in listeners)
+                {
+                    T lastCatcher = listener as T;
+                    foreach (var catcher in catchers)
+                    {
+                        var cat = catcher as ListenerCatcher<T>;
+                        cat.Listener = lastCatcher;
+                        lastCatcher = catcher as T;
+                    }
+                    yield return lastCatcher;
+                }
+            }
+            else
+            {
+                foreach (var l in listeners)
+                {
+                    yield return l as T;
+                }
             }
         }
 
