@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.3.3] - 2024-07-01
+
+### Fixed
+
+- Fixed unsubscribe listener on same event
+
 ## [2.3.2] - 2024-07-01
 
 ### Fixed

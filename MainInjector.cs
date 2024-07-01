@@ -25,6 +25,7 @@ namespace DSystem
         private class EventFlag
         {
             public Queue<object> NewListeners;
+            public Queue<object> RemovedListeners;
             public bool Active;
         }
 
@@ -308,7 +309,8 @@ namespace DSystem
             else
             {
                 listeners = new List<object>();
-                _eventFlags.Add(listenerType, new EventFlag() {NewListeners = new Queue<object>()});
+                _eventFlags.Add(listenerType, new EventFlag() 
+                    {NewListeners = new Queue<object>(), RemovedListeners = new Queue<object>()});
                 _listeners.Add(listenerType, listeners);
             }
 
@@ -327,15 +329,28 @@ namespace DSystem
             }
         }
 
+        public void RemoveListener<T>(object listener)
+        {
+            RegistryListener(listener, typeof(T));
+        }
+
         public void RemoveListener(object listener, Type listenerType)
         {
-            if (_listenersRemoveCatchers.TryGetValue(listenerType, out Action<object> action))
+            if (_eventFlags.TryGetValue(listenerType, out EventFlag flag));
+            if (flag is { Active: true })
             {
-                action?.Invoke(listener);
+                flag.RemovedListeners.Enqueue(listener);
             }
-            if (_listeners.TryGetValue(listenerType, out List<object> listeners))
+            else
             {
-                listeners.Remove(listener);
+                if (_listenersRemoveCatchers.TryGetValue(listenerType, out Action<object> action))
+                {
+                    action?.Invoke(listener);
+                }
+                if (_listeners.TryGetValue(listenerType, out List<object> listeners))
+                {
+                    listeners.Remove(listener);
+                }
             }
         }
 
@@ -436,6 +451,12 @@ namespace DSystem
             if (flag != null)
             {
                 flag.Active = false;
+
+                while (flag.RemovedListeners.TryDequeue(out object listener))
+                {
+                    RemoveListener(listener, t);
+                }
+                
                 while (flag.NewListeners.TryDequeue(out object listener))
                 {
                     RegistryListener(listener, t);
