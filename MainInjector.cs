@@ -19,7 +19,14 @@ namespace DSystem
         private Dictionary<Type, List<object>> _listeners;
         private Dictionary<Type, Action<object>> _listenersCatchers;
         private Dictionary<Type, Action<object>> _listenersRemoveCatchers;
+        private Dictionary<Type, EventFlag> _eventFlags;
         private List<IUpdatable> _updatables;
+        
+        private class EventFlag
+        {
+            public Queue<object> NewListeners;
+            public bool Active;
+        }
 
         private MethodInfo _getComponentsInChildrens;
 
@@ -43,6 +50,7 @@ namespace DSystem
             _listenersCatchers = new Dictionary<Type, Action<object>>();
             _listenersRemoveCatchers = new Dictionary<Type, Action<object>>();
             _updatables = new List<IUpdatable>();
+            _eventFlags = new ();
             _catchers = new();
             Configure();
 
@@ -288,10 +296,11 @@ namespace DSystem
         {
             RegistryListener(listener, typeof(T));
         }
-        
+
         public void RegistryListener(object listener, Type listenerType)
         {
             List<object> listeners;
+            if (_eventFlags.TryGetValue(listenerType, out EventFlag flag));
             if (_listeners.TryGetValue(listenerType, out List<object> list))
             {
                 listeners = list;
@@ -299,15 +308,22 @@ namespace DSystem
             else
             {
                 listeners = new List<object>();
+                _eventFlags.Add(listenerType, new EventFlag() {NewListeners = new Queue<object>()});
                 _listeners.Add(listenerType, listeners);
             }
 
             if (listeners.Contains(listener)) return;
-            listeners.Add(listener);
-            
-            if (_listenersCatchers.TryGetValue(listenerType, out Action<object> onCatchListener))
+            if (flag is { Active: true })
             {
-                onCatchListener.Invoke(listener);
+                flag.NewListeners.Enqueue(listener);
+            }
+            else
+            {
+                listeners.Add(listener);
+                if (_listenersCatchers.TryGetValue(listenerType, out Action<object> onCatchListener))
+                {
+                    onCatchListener.Invoke(listener);
+                }
             }
         }
 
@@ -393,6 +409,8 @@ namespace DSystem
             var t = typeof(T);
             if (!_listeners.TryGetValue(t, out List<object> listeners)) return;
             bool mutable = _catchers.TryGetValue(t, out List<object> catchers);
+            if (_eventFlags.TryGetValue(t, out EventFlag flag));
+            if (flag != null) flag.Active = true;
             if (mutable)
             {
                 foreach (var listener in listeners)
@@ -412,6 +430,15 @@ namespace DSystem
                 foreach (var listener in listeners)
                 {
                     action.Invoke(listener as T);
+                }
+            }
+
+            if (flag != null)
+            {
+                flag.Active = false;
+                while (flag.NewListeners.TryDequeue(out object listener))
+                {
+                    RegistryListener(listener, t);
                 }
             }
         }
