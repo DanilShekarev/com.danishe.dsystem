@@ -1,8 +1,9 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace DSystem
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class), BaseTypeRequired(typeof(DBehaviour))]
     public class RegistryListenersAttribute : Attribute
     {
         internal Type[] Types { get; private set; }

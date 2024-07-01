@@ -15,6 +15,8 @@ namespace DSystem
         private Dictionary<Type, Action<object>> _listenerRemoveCatchers;
         
         private Action _onDestroy;
+        private Action _onDisable;
+        private Action _onEnable;
 
         private DisableCatcher _disableCatcher;
 
@@ -69,6 +71,14 @@ namespace DSystem
                 {
                     MainInjector.Instance.RemoveListener(this, inter);
                 };
+                _onDisable += () =>
+                {
+                    MainInjector.Instance.RemoveListener(this, inter);
+                };
+                _onEnable += () =>
+                {
+                    MainInjector.Instance.RegistryListener(this, inter);
+                };
             }
 
             var registryAttributes = type.GetCustomAttributes<RegistryListenersAttribute>();
@@ -115,6 +125,16 @@ namespace DSystem
                 _disableCatcher.RemoveOnDispose(this);
                 _disableCatcher = null;
             }
+        }
+
+        protected virtual void OnEnable()
+        {
+            _onEnable?.Invoke();
+        }
+
+        protected virtual void OnDisable()
+        {
+            _onDisable?.Invoke();
         }
 
         protected virtual void OnInitialize() { }

@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## [2.3.1] - 2024-07-01
+
+### Fixed
+
+- Disable listeners when disable gameObject
+- Protect multi subscribe for global listeners
+
 ## [2.3.0] - 2024-06-20
 
 ### Added

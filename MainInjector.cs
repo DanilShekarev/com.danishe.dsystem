@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -287,7 +288,7 @@ namespace DSystem
         {
             RegistryListener(listener, typeof(T));
         }
-
+        
         public void RegistryListener(object listener, Type listenerType)
         {
             List<object> listeners;
@@ -300,6 +301,8 @@ namespace DSystem
                 listeners = new List<object>();
                 _listeners.Add(listenerType, listeners);
             }
+
+            if (listeners.Contains(listener)) return;
             listeners.Add(listener);
             
             if (_listenersCatchers.TryGetValue(listenerType, out Action<object> onCatchListener))
