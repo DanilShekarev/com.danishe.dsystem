@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -12,6 +11,8 @@ namespace DSystem
     public sealed class MainInjector : MonoBehaviour
     {
         public static MainInjector Instance { get; private set; }
+
+        public event Action<Scene, LoadSceneMode> SceneInjected;
     
         private Dictionary<Type, object> _instances;
         private Dictionary<Type, Action<object>> _injectWaiters;
@@ -61,6 +62,7 @@ namespace DSystem
         private void LoadedScene(Scene arg0, LoadSceneMode arg1)
         {
             InjectScene();
+            SceneInjected?.Invoke(arg0, arg1);
         }
 
         private void Update()

@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.3.4] - 2024-07-23
+
+### Added
+
+- Add SceneInjected event
+
 ## [2.3.3] - 2024-07-01
 
 ### Fixed
