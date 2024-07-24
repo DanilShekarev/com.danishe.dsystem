@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.3.5] - 2024-07-24
+
+### Fixed
+
+- Fixed double subscribe listener for local listeners
+
 ## [2.3.4] - 2024-07-23
 
 ### Added

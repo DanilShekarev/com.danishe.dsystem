@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using DSystem.InternalSystems;
 using UnityEngine;
@@ -91,7 +92,7 @@ namespace DSystem
 
                     if (_listeners.TryGetValue(t, out List<object> list))
                     {
-                        list.AddRange(listeners);
+                        list.AddRange(listeners.Except(list));
                     }
                     else
                     {
