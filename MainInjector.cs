@@ -333,7 +333,7 @@ namespace DSystem
 
         public void RemoveListener<T>(object listener)
         {
-            RegistryListener(listener, typeof(T));
+            RemoveListener(listener, typeof(T));
         }
 
         public void RemoveListener(object listener, Type listenerType)

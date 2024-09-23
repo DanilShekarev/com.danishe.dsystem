@@ -1,5 +1,15 @@
 ﻿# Changelog
 
+## [2.3.6] - 2024-09-23
+
+### Added
+
+- Add DSystemBase class
+
+### Fixed
+
+- Fixed unsubscribe listener function
+
 ## [2.3.5] - 2024-07-24
 
 ### Fixed
