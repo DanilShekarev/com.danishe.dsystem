@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.3.7] - 2024-10-07
+
+### Fixed
+
+- Fixed safe sub/unsubscribe on double invoke one event listener.
+
 ## [2.3.6] - 2024-09-23
 
 ### Added

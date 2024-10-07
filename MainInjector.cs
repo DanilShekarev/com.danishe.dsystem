@@ -27,7 +27,7 @@ namespace DSystem
         {
             public Queue<object> NewListeners;
             public Queue<object> RemovedListeners;
-            public bool Active;
+            public int Active;
         }
 
         private MethodInfo _getComponentsInChildrens;
@@ -317,7 +317,7 @@ namespace DSystem
             }
 
             if (listeners.Contains(listener)) return;
-            if (flag is { Active: true })
+            if (flag is { Active: >= 1 })
             {
                 flag.NewListeners.Enqueue(listener);
             }
@@ -339,7 +339,7 @@ namespace DSystem
         public void RemoveListener(object listener, Type listenerType)
         {
             if (_eventFlags.TryGetValue(listenerType, out EventFlag flag));
-            if (flag is { Active: true })
+            if (flag is { Active: >= 1 })
             {
                 flag.RemovedListeners.Enqueue(listener);
             }
@@ -427,7 +427,8 @@ namespace DSystem
             if (!_listeners.TryGetValue(t, out List<object> listeners)) return;
             bool mutable = _catchers.TryGetValue(t, out List<object> catchers);
             if (_eventFlags.TryGetValue(t, out EventFlag flag));
-            if (flag != null) flag.Active = true;
+            if (flag != null)
+                flag.Active++;
             if (mutable)
             {
                 foreach (var listener in listeners)
@@ -452,7 +453,10 @@ namespace DSystem
 
             if (flag != null)
             {
-                flag.Active = false;
+                flag.Active--;
+                
+                if (flag.Active != 0)
+                    return;
 
                 while (flag.RemovedListeners.TryDequeue(out object listener))
                 {
