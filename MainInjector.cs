@@ -440,14 +440,29 @@ namespace DSystem
                         cat.Listener = lastCatcher;
                         lastCatcher = catcher as T;
                     }
-                    action.Invoke(lastCatcher);
+
+                    try
+                    {
+                        action.Invoke(lastCatcher);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
             }
             else
             {
                 foreach (var listener in listeners)
                 {
-                    action.Invoke(listener as T);
+                    try
+                    {
+                        action.Invoke(listener as T);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
             }
 

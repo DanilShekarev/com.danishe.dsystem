@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.3.8] - 2024-10-18
+
+### Improved
+
+- Invoke listeners now is safe for exceptions.
+
 ## [2.3.7] - 2024-10-07
 
 ### Fixed
