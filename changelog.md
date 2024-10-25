@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.3.9] - 2024-10-25
+
+### Improved
+
+- Registry/Remove listener check interface implementation
+
 ## [2.3.8] - 2024-10-18
 
 ### Improved

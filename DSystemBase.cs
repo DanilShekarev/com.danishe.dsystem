@@ -2,7 +2,7 @@
 {
     public abstract class DSystemBase
     {
-        protected void RegistryListener<T>(object listener) where T : class
+        protected void RegistryListener<T>(T listener) where T : class
         {
             MainInjector.Instance.RegistryListener<T>(listener);
         }
@@ -12,7 +12,7 @@
             MainInjector.Instance.RegistryListener(listener, listenerType);
         }
 
-        protected void RemoveListener<T>(object listener)
+        protected void RemoveListener<T>(T listener) where T : class
         {
             MainInjector.Instance.RemoveListener<T>(listener);
         }

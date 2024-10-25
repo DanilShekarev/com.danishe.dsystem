@@ -295,7 +295,7 @@ namespace DSystem
             }
         }
 
-        public void RegistryListener<T>(object listener) where T : class
+        public void RegistryListener<T>(T listener) where T : class
         {
             RegistryListener(listener, typeof(T));
         }
@@ -331,7 +331,7 @@ namespace DSystem
             }
         }
 
-        public void RemoveListener<T>(object listener)
+        public void RemoveListener<T>(T listener) where T : class
         {
             RemoveListener(listener, typeof(T));
         }
