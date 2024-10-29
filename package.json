@@ -1,8 +1,8 @@
 ﻿{
   "name": "com.danishe.dsystem",
-  "version": "2.3.9",
+  "version": "2.4.0",
   "displayName": "DSystem",
-  "description": "DSystem auto resolver dependency.",
+  "description": "DSystem is more then auto resolver dependency.",
   "author": {
     "name": "Danila Schekarev",
     "url": "https://github.com/DanilShekarev"

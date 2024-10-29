@@ -32,6 +32,8 @@ namespace DSystem
 
         private MethodInfo _getComponentsInChildrens;
 
+        private Assembly _mainAssembly;
+
         private void Awake()
         {
             if (Instance != null)
@@ -88,6 +90,7 @@ namespace DSystem
         private void Configure()
         {
             Assembly assembly = Assembly.Load("Assembly-CSharp");
+            _mainAssembly = assembly;
             Assembly assemblyDSystem = Assembly.Load("DSystem");
             Configure(assemblyDSystem);
             Configure(assembly);
@@ -300,6 +303,11 @@ namespace DSystem
             RegistryListener(listener, typeof(T));
         }
 
+        public Type GetTypeFromName(string typeName)
+        {
+            return _mainAssembly.GetTypes().FirstOrDefault(t => t.Name == typeName);
+        }
+
         public void RegistryListener(object listener, Type listenerType)
         {
             List<object> listeners;
@@ -419,6 +427,18 @@ namespace DSystem
         {
             if (!_catchers.TryGetValue(typeof(T), out var catchers)) return;
             catchers.Remove(listenerCatcher);
+        }
+
+        public void InvokeListenersEvent(Type interfaceType, MethodInfo method)
+        {
+            var invokeMethod = GetType().GetMethod("InvokeListeners").MakeGenericMethod(interfaceType);
+            Action<object> action = Action;
+            invokeMethod.Invoke(this, new object[] {action});
+
+            void Action(object arg)
+            {
+                method.Invoke(arg, new object[] {});
+            }
         }
 
         public void InvokeListeners<T>(Action<T> action) where T : class

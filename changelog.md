@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.4.0] - 2024-10-29
+
+## Added
+
+- Added Universal Event Invoker component (Experimental)
+
 ## [2.3.9] - 2024-10-25
 
 ### Improved
