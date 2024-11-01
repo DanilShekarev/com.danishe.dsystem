@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.4.1] - 2024-11-01
+
+## Fixed
+
+- Fix registry listeners attributes ignore from inherit classes
+
 ## [2.4.0] - 2024-10-29
 
 ## Added

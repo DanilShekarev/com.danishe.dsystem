@@ -82,7 +82,8 @@ namespace DSystem
                 };
             }
 
-            var registryAttributes = type.GetCustomAttributes<RegistryListenersAttribute>();
+            var registryAttributes = 
+                type.GetCustomAttributes<RegistryListenersAttribute>(true);
             foreach (var registryAttribute in registryAttributes)
             {
                 foreach (var t in registryAttribute.Types)
