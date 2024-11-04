@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DSystem.InternalSystems;
+using DSystem.Utils;
 using UnityEngine;
 
 namespace DSystem
@@ -81,9 +82,8 @@ namespace DSystem
                     MainInjector.Instance.RegistryListener(this, inter);
                 };
             }
-
-            var registryAttributes = 
-                type.GetCustomAttributes<RegistryListenersAttribute>(true);
+            
+            var registryAttributes = type.GetAttributes<RegistryListenersAttribute>();
             foreach (var registryAttribute in registryAttributes)
             {
                 foreach (var t in registryAttribute.Types)
