@@ -441,7 +441,7 @@ namespace DSystem
             }
         }
         
-        public void InvokeListeners(Type interfaceType, Action<object> action)
+        public void InvokeListenersReflection(Type interfaceType, Action<object> action)
         {
             var invokeMethod = GetType().GetMethod("InvokeListeners").MakeGenericMethod(interfaceType);
             invokeMethod.Invoke(this, new object[] {action});
