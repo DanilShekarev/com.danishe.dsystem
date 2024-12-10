@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.4.2] - 2024-12-10
+
+## Added
+
+- Added InvokeListeners(Type, Action<object>) method.
+
 ## [2.4.1] - 2024-11-01
 
 ## Fixed

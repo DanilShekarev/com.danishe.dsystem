@@ -440,6 +440,12 @@ namespace DSystem
                 method.Invoke(arg, new object[] {});
             }
         }
+        
+        public void InvokeListeners(Type interfaceType, Action<object> action)
+        {
+            var invokeMethod = GetType().GetMethod("InvokeListeners").MakeGenericMethod(interfaceType);
+            invokeMethod.Invoke(this, new object[] {action});
+        }
 
         public void InvokeListeners<T>(Action<T> action) where T : class
         {

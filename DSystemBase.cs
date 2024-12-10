@@ -52,6 +52,11 @@
             MainInjector.Instance.InvokeListeners(action);
         }
 
+        protected void InvokeListeners(System.Type interfaceType, System.Action<object> action)
+        {
+            MainInjector.Instance.InvokeListeners(interfaceType, action);
+        }
+
         protected System.Collections.Generic.IEnumerable<T> ForeachListeners<T>() where T : class
         {
             return MainInjector.Instance.ForeachListeners<T>();
