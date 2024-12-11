@@ -58,6 +58,14 @@ namespace DSystem
                         {
                             dAction.RemoveListener(this);
                         };
+                        _onDisable += () =>
+                        {
+                            dAction.RemoveListener(this);
+                        };
+                        _onEnable += () =>
+                        {
+                            dAction.RegistryListener(this);
+                        };
                     }
                     continue;
                 }
@@ -88,6 +96,21 @@ namespace DSystem
                     foreach (var listener in listeners)
                     {
                         dAction.RegistryListener(listener);
+                        if (listener is DBehaviour dBehaviour)
+                        {
+                            dBehaviour._onDisable += () =>
+                            {
+                                dAction.RemoveListener(dBehaviour);
+                            };
+                            dBehaviour._onDestroy += () =>
+                            {
+                                dAction.RemoveListener(dBehaviour);
+                            };
+                            dBehaviour._onEnable += () =>
+                            {
+                                dAction.RegistryListener(dBehaviour);
+                            };
+                        }
                     }
                 }
             }

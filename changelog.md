@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## [2.5.1] - 2024-12-11
+
+### Fixed
+- **DBehavior**: Now when disable unsubscribe from local events.
+
 ## [2.5.0] - 2024-12-11
 
 ### Removed
