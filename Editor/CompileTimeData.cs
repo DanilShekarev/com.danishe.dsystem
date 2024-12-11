@@ -44,7 +44,9 @@ namespace DSystem
         public static string GetTypeNameFromGUID(this string guid)
         {
             var path = AssetDatabase.GUIDToAssetPath(guid);
-            if (string.IsNullOrEmpty(path)) return null;
+            if (string.IsNullOrEmpty(path))
+                return null;
+            
             return Path.GetFileName(path).Replace(".cs", "");
         }
     }

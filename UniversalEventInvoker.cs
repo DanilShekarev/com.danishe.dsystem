@@ -23,7 +23,10 @@ namespace DSystem
             _method ??= _type.GetMethod(methodName, 
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance);
             
-            MainInjector.Instance.InvokeListenersEvent(_type, _method);
+            MainInjector.Instance.GetDAction(_type)?.Invoke(listener =>
+            {
+                _method.Invoke(listener, new [] {listener});
+            });
         }
     }
 }

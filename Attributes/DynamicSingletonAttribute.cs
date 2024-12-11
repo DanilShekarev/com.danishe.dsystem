@@ -3,7 +3,7 @@
 namespace DSystem
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class DynamicSingletonAttribute : Attribute
+    public class DynamicSingletonAttribute : SingletonAttribute
     {
     
     }

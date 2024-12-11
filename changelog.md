@@ -1,5 +1,54 @@
 ﻿# Changelog
 
+## [2.5.0] - 2024-12-11
+
+### Removed
+- **MainInjector**: The following methods have been removed:
+    - `RegistryCatcher<T>`
+    - `RemoveCatcher<T>`
+    - `InvokeListenersEvent`
+
+### Deprecated
+- **MainInjector**: The following methods are now deprecated:
+    - `RegistryListener<T>`
+    - `RemoveListener<T>`
+    - `RegistryListenerCatcher<T>`
+    - `RegistryUnsubscribeListenerCatcher<T>`
+    - `InvokeListenersReflection`
+    - `InvokeListeners<T>`
+    - `ForeachListeners<T>`
+
+- **DBehaviour**: The following methods are now deprecated:
+    - `SubscribeTo<T>`
+    - `InvokeListeners<T>`
+    - `RegistryCatcher<T>`
+    - `RegistryUnsubscribeCatcher<T>`
+
+### Added
+- **MainInjector**: New methods introduced:
+    - `DAction<T> GetDAction<T>(bool createInstance = true)`
+    - `IDAction GetDAction(Type type, bool createInstance = true)`
+
+- **DBehaviour**: New methods introduced:
+    - `DAction<T> GetDAction<T>(bool createInstance = true)`
+    - `IDAction GetDAction(Type type, bool createInstance = true)`
+
+- **New Class**: `DAction<T>`
+- **New Interface**: `IDAction`
+
+### Changes
+- **DynamicSingleton Attribute**: Can now be used without the `Singleton` attribute.
+- **ListenerCatcher<T>**: Renamed to `EventHandler<T>`.
+
+---
+
+### Notes
+This update introduces significant changes to the API, providing a more robust and flexible approach for dependency injection and event handling. Deprecated methods will remain available temporarily for backward compatibility but are recommended to be replaced with their new counterparts.
+
+For detailed migration steps, please refer to the documentation.
+
+
+
 ## [2.4.2] - 2024-12-10
 
 ## Added

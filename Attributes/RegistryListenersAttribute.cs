@@ -7,6 +7,9 @@ namespace DSystem
     public class RegistryListenersAttribute : Attribute
     {
         internal Type[] Types { get; private set; }
+
+        [Obsolete]
+        public RegistryListenersAttribute() { }
         
         public RegistryListenersAttribute(params Type[] types)
         {

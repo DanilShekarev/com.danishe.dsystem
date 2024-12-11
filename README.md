@@ -1,278 +1,213 @@
 # DSystem
-For DSystem to work, you need to install the MainInjector component on scene.
-# Overview
+
+DSystem is a lightweight framework designed to simplify dependency management and event-driven architectures in Unity projects. Here's a guide to understanding its components and how to use them.
+
+---
+
+## Installation
+
+To use DSystem, you need to install the `MainInjector` component in your Unity scene. This serves as the core of the system, managing dependencies and events.
+
+---
+
+## Key Features
+
+- **Dependency Injection**: Easily inject dependencies into your components and classes.
+- **Event System**: Manage global and local events with flexible subscription and interception.
+- **Lifecycle Management**: Automate initialization, updates, and disposal of components.
+
+---
+
 ## Interfaces
-To dispose of the singleton, use the <b>IDisposable</b> system interface.
-### IInitializable
-Interface for singleton initialization. At the time of calling the initialization function, all dependencies will be resolved.
-Example:
-``` C#
+
+### 1. `IInitializable`
+
+For singleton initialization. Dependencies are resolved before the `Initialize` method is called.
+
+```csharp
 [AutoRegistry]
 public class ExampleSingleton : IInitializable
 {
     public void Initialize()
     {
-        
+        // Initialization logic
     }
 }
 ```
-### IUpdatable
-Interface for the update function. It works the same way as Update in MonoBehaviour.
-Example:
-``` C#
+
+### 2. `IUpdatable`
+
+Provides a frame-based update function similar to `MonoBehaviour`'s `Update`.
+
+```csharp
 [AutoRegistry]
 public class ExampleSingleton : IUpdatable
 {
     public void Update()
     {
-        //Called every frame
+        // Called every frame
     }
 }
 ```
+
+### 3. `IDisposable`
+
+Disposes of the singleton when no longer needed.
+
+---
+
 ## Attributes
-### AutoRegistry
-Registers the class as a singleton. Example:
-``` C#
-[AutoRegistry]
-public class ExampleSingleton
-{
 
-}
+### 1. `AutoRegistry`
+
+Registers a class as a singleton.
+
+```csharp
+[AutoRegistry]
+public class ExampleSingleton {}
 ```
-### Inject
-Sets references to variables and fields.
-Can inject child components
-Examples:
-``` C#
+
+### 2. `Inject`
+
+Injects dependencies into fields.
+
+```csharp
 [AutoRegistry]
 public class ExampleSingleton
-{
-    [Inject] private Example example;
-}
-
-public class ExampleComponent : DBehaviour
 {
     [Inject] private Example example;
     [Inject] private Collider[] colliders;
 }
 ```
-InjectParams IncludeInactive inject disabled component like GetComponentInChildren<Example>(true).
-Can be used with arrays.
-Example:
-``` C#
-public class ExampleComponent : DBehaviour
-{
-    [Inject(InjectParams.IncludeInactive)]
-    private Example example;
-    
-    [Inject(InjectParams.IncludeInactive)]
-    private Example[] example;
-}
-```
-InjectParams UseGlobal inject singleton instance.
-Usually used for inject singleton component.
-Example:
-``` C#
-public class ExampleComponent : DBehaviour
-{
-    [Inject(InjectParams.UseGlobal)]
-    private Example example;
-}
 
-[Singleton/DynamicSingleton]
-public class Example : DBehaviour {}
-```
-Can add onInject event. Event call when inject instance.
-``` C#
-public class ExampleComponent : DBehaviour
-{
-    [Inject(nameof(OnInjectExample))] private Example example;
+Options:
 
-    private void OnInjectExample()
-    {
-        //Called when inject example.
-    }
-}
-```
-### DisableInitialize
-This script will be initialized when loading scene. Example:
-``` C#
+- `InjectParams.IncludeInactive`: Injects disabled components.
+- `InjectParams.UseGlobal`: Injects singleton instances.
+
+### 3. `DisableInitialize`
+
+Defers initialization until the scene is loaded.
+
+```csharp
 [DisableInitialize]
 public class ExampleComponent : DBehaviour
 {
     protected override void OnInitialize()
     {
-        //Called when on loaded scene
+        // Called after the scene is loaded
     }
 }
 ```
-## Event system
-### Global events
-For event provide use interface. Example:
-``` C#
+
+---
+
+## Event System
+
+### 1. Global Events
+
+Define events with interfaces and manage them globally.
+
+```csharp
 [Listener]
 public interface IExampleListener
 {
-    public void SomeEvent();
-}
-```
-To send an event, you need to call the InvokeListeners method. Example:
-``` C#
-MainInjector.Instance.InvokeListeners<IExampleListener>(l =>
-{
-    l.SomeEvent();
-});
-
-//Alternative invokation.
-foreach (var listener in MainInjector.Instance.ForeachListeners<IExampleListener>())
-{
-    listener.SomeEvent();
-}
-```
-To subscribe to an event, it is enough to inherit the interface only for DBehaviour objects. 
-For other implementations, you must manually subscribe via the RegistryListener method.
-For unsubscribe use RemoveListener method.
-Example:
-``` C#
-[AutoRegistry]
-public class ExampleSingleton : IInitializable, IExampleListener
-{
-    public void Initialize()
-    {
-        //Manual subscription
-        MainInjector.Instance.RegistryListener<IExampleListener>(this);
-    }
-
-    public void SomeEvent()
-    {
-        
-    }
+    void SomeEvent();
 }
 
+// Sending events
+GetDAction<IExampleListener>().Invoke(l => l.SomeEvent());
+
+// Subscribing to events
 public class ExampleComponent : DBehaviour, IExampleListener
 {
-    public void SomeEvent()
-    {
-        
-    }
+    public void SomeEvent() {}
 }
 ```
-## Local events
-For event provide use interface. UseGlobal false mark interface local.
-The Up value is true, which indicates that events will be sent up the hierarchy. Example:
-``` C#
+
+### 2. Local Events
+
+Manage events within a specific hierarchy.
+
+```csharp
 [Listener(useGlobal: false)]
 public interface IExampleListener
 {
-    public void SomeEvent();
+    void SomeEvent();
 }
 
-[Listener(useGlobal: false, up: true)]
-public interface IExampleUpListener
-{
-    public void SomeEvent();
-}
-```
-To send an event, you need to call the InvokeListeners method.
-You also need to add the RegistryListeners attribute to register listeners.
-Example:
-``` C#
 [RegistryListeners(typeof(IExampleListener))]
 public class ExampleParent : DBehaviour
 {
     private void ExampleMethod()
     {
-        InvokeListeners<IExampleListener>(l => l.SomeEvent());
+        GetDAction<IExampleListener>().Invoke(l => l.SomeEvent());
     }
 }
 ```
-To subscribe to an event, it is enough to inherit the interface only for DBehaviour objects. 
-``` C#
-public class ExampleChild : DBehaviour, IExampleListener
+
+### 3. Event Handlers
+
+Intercept and modify event data.
+
+```csharp
+public class ExampleHandler : EventHandler<IExampleListener>, IExampleListener
 {
-    public void SomeEvent()
+    public void SomeEvent(int amount)
     {
-        
+        Listener.SomeEvent(amount * 2); // Modify event data
     }
 }
 ```
-To sign outside the hierarchy, you must use the SubscribeTo method.
-To unsubscribe, you must call Action with the returned SubscribeTo method.
-Example:
-``` C#
-public class ExampleComponent : DBehaviour, IExampleListener
+
+---
+
+## DBehaviour
+
+`DBehaviour` is a wrapper for Unity's `MonoBehaviour`. It automates event subscription and lifecycle management.
+
+**Note**: Use `Awake`, `OnDestroy`, `OnDisable`, and `OnEnable` only by overriding them.
+
+```csharp
+public class ExampleComponent : DBehaviour
 {
-    [SerializeField] private DBehaviour other;
-    
-    private Action _unsubscribeAction;
-    
     protected override void OnInitialize()
     {
-        _unsubscribeAction = SubscribeTo<IExampleListener>(other);
-    }
-    
-    protected override void OnDispose()
-    {
-        _unsubscribeAction.Invoke();
+        // Called after the scene is injected
     }
 
-    public void SomeEvent()
+    protected override void OnDisable()
     {
-        
+        // Cleanup logic
     }
 }
 ```
-### Listener catcher
-Listener Catcher intercepts events and changes them.
-Example:
-``` C#
-[AutoRegistry]
-public class ExampleSingleton : IInitializable, IDisposable
+
+---
+
+## DAction
+
+`DAction` facilitates event management between classes and interfaces.
+
+```csharp
+public class ExampleClass
 {
-    private ExampleCatcher _exampleCatcher;
-    
-    public void Initialize()
-    {
-        _exampleCatcher = new ExampleCatcher();
-        MainInjector.Instance.RegistryCatcher(_exampleCatcher);
-    }
+    public readonly DAction<IExampleInterface> ExampleAction = new();
 
-    public void ExampleMethod()
+    private void ExampleMethod()
     {
-        MainInjector.Instance.InvokeListeners<IExampleListener>(l => l.SomeEvent(10));
-    }
-
-    public void Dispose()
-    {
-        MainInjector.Instance.RemoveCatcher(_exampleCatcher);
-    }
-}
-
-[Listener]
-public interface IExampleListener
-{
-    public void SomeEvent(int amount);
-}
-
-public class ExampleCatcher : ListenerCatcher<IExampleListener>, IExampleListener
-{
-    public void SomeEvent(int amount)
-    {
-        Listener.SomeEvent(amount*2);
-    }
-}
-
-[AutoRegistry]
-public class ExampleListener : IInitializable, IExampleListener
-{
-    public void Initialize()
-    {
-        MainInjector.Instance.RegistryListener<IExampleListener>(this);
-    }
-    
-    public void SomeEvent(int amount)
-    {
-        
+        ExampleAction.Invoke(l => l.SomeEvent());
     }
 }
 ```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+Thank you for using DSystem! If you have any questions or feedback, feel free to reach out.
+

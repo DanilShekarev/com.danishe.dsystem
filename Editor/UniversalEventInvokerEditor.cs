@@ -20,7 +20,7 @@ namespace DSystem.Editor
             var interfaceTypeProp = serializedObject.FindProperty("interfaceType");
             var fileGUIDProp = serializedObject.FindProperty("fileGUID");
             var interfaceName = interfaceTypeProp.stringValue;
-            int currentIndex = Array.IndexOf(CompileTimeData.ListenersNames, interfaceName);
+            var currentIndex = Array.IndexOf(CompileTimeData.ListenersNames, interfaceName);
 
             if (currentIndex == -1)
             {
@@ -29,7 +29,7 @@ namespace DSystem.Editor
                 currentIndex = Array.IndexOf(CompileTimeData.ListenersNames, interfaceName);
             }
             
-            int newIndex = EditorGUILayout.Popup("Interface type", 
+            var newIndex = EditorGUILayout.Popup("Interface type", 
                 Mathf.Max(currentIndex, 0), CompileTimeData.ListenersNames);
 
             if (newIndex == currentIndex) 
@@ -56,8 +56,8 @@ namespace DSystem.Editor
             
             var methodsNames = methods.Select(m => m.Name).ToArray();
 
-            int index = Array.IndexOf(methodsNames, methodName);
-            int newIndex = EditorGUILayout.Popup("Method", Mathf.Max(index, 0), methodsNames);
+            var index = Array.IndexOf(methodsNames, methodName);
+            var newIndex = EditorGUILayout.Popup("Method", Mathf.Max(index, 0), methodsNames);
 
             if (newIndex == index) return;
 

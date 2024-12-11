@@ -2,61 +2,53 @@
 {
     public abstract class DSystemBase
     {
+        [System.Obsolete]
         protected void RegistryListener<T>(T listener) where T : class
         {
-            MainInjector.Instance.RegistryListener<T>(listener);
+            MainInjector.Instance.RegistryListener(listener);
         }
 
-        protected void RegistryListener(object listener, System.Type listenerType)
-        {
-            MainInjector.Instance.RegistryListener(listener, listenerType);
-        }
-
+        [System.Obsolete]
         protected void RemoveListener<T>(T listener) where T : class
         {
-            MainInjector.Instance.RemoveListener<T>(listener);
+            MainInjector.Instance.RemoveListener(listener);
         }
 
-        protected void RemoveListener(object listener, System.Type listenerType)
-        {
-            MainInjector.Instance.RemoveListener(listener, listenerType);
-        }
-
+        [System.Obsolete]
         protected UnsubscribeToken RegistryListenerCatcher<T>(System.Action<T> onCatchListener) where T : class
         {
             return MainInjector.Instance.RegistryListenerCatcher(onCatchListener);
         }
 
+        [System.Obsolete]
         protected UnsubscribeToken RegistryUnsubscribeListenerCatcher<T>(System.Action<T> onCatchListener) where T : class
         {
             return MainInjector.Instance.RegistryUnsubscribeListenerCatcher(onCatchListener);
         }
 
-        protected void RegistryInjection(object instance, bool forceInitializeSystems = false, bool isSystem = false)
+        protected void RegistryInjection(object instance, bool forceInitializeSystems = false, bool isComponent = false)
         {
-            MainInjector.Instance.RegistryInjection(instance, forceInitializeSystems, isSystem);
+            MainInjector.Instance.RegistryInjection(instance, forceInitializeSystems, isComponent);
         }
 
-        protected void RegistryCatcher<T>(ListenerCatcher<T> listenerCatcher) where T : class
-        {
-            MainInjector.Instance.RegistryCatcher(listenerCatcher);
-        }
-
-        protected void RemoveCatcher<T>(ListenerCatcher<T> listenerCatcher) where T : class
-        {
-            MainInjector.Instance.RemoveCatcher(listenerCatcher);
-        }
-
+        [System.Obsolete]
         protected void InvokeListeners<T>(System.Action<T> action) where T : class
         {
             MainInjector.Instance.InvokeListeners(action);
         }
 
+        [System.Obsolete]
         protected void InvokeListeners(System.Type interfaceType, System.Action<object> action)
         {
             MainInjector.Instance.InvokeListenersReflection(interfaceType, action);
         }
 
+        protected DAction<T> GetDAction<T>() where T : class
+        {
+            return MainInjector.Instance.GetDAction<T>();
+        }
+
+        [System.Obsolete]
         protected System.Collections.Generic.IEnumerable<T> ForeachListeners<T>() where T : class
         {
             return MainInjector.Instance.ForeachListeners<T>();

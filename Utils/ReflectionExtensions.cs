@@ -9,7 +9,7 @@ namespace DSystem.Utils
     {
         public static IEnumerable<T> GetAttributes<T>(this Type type) where T : Attribute
         {
-            Type temp = type;
+            var temp = type;
             while (true)
             {
                 var attributes = temp.GetCustomAttributes<T>(false);
