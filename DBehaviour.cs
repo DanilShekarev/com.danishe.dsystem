@@ -95,6 +95,8 @@ namespace DSystem
                     var dAction = GetDAction(t);
                     foreach (var listener in listeners)
                     {
+                        if (listener == this)
+                            continue;
                         dAction.RegistryListener(listener);
                         if (listener is DBehaviour dBehaviour)
                         {
