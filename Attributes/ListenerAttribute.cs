@@ -5,7 +5,7 @@ namespace DSystem
     [AttributeUsage(AttributeTargets.Interface)]
     public class ListenerAttribute : Attribute
     {
-        internal bool Global { get; private set; }
+        public bool Global { get; private set; }
         internal bool Up { get; private set; }
         
         public ListenerAttribute(bool global = true, bool up = false)
