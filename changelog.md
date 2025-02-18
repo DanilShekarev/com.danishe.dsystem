@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.5.2] - 2025-02-18
+
+### Fixed
+
+- **DAction**: Fix exception log.
+
 ## [2.5.1] - 2024-12-11
 
 ### Fixed

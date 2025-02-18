@@ -47,7 +47,7 @@ namespace DSystem
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(e);
+                    Debug.LogException(e);
                 }
             }
 
