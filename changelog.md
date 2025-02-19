@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.5.3] - 2025-02-19
+
+### Added
+- Support DSystemUtils.
+
+
 ## [2.5.2] - 2025-02-18
 
 ### Fixed

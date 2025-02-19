@@ -79,6 +79,16 @@ namespace DSystem
             _mainAssembly = assembly;
             var assemblyDSystem = Assembly.Load("DSystem");
             Configure(assemblyDSystem);
+            try
+            {
+                var assemblyDSystemUtils = Assembly.Load("DSystemUtils");
+                Configure(assemblyDSystemUtils);
+            }
+            catch
+            {
+                // ignored
+            }
+
             Configure(assembly);
         }
 
