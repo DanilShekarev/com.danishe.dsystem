@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace DSystem.InternalSystems
     public class DisableCatchersController : IInitializable
     {
         private readonly Dictionary<GameObject, DisableCatcher> _disableCatchers = new ();
-        private readonly Stack<DisableCatcher> _pool = new();
+        private readonly HashSet<DisableCatcher> _pool = new();
 
         private Transform _poolTr;
         
@@ -22,29 +23,31 @@ namespace DSystem.InternalSystems
         {
             if (_disableCatchers.TryGetValue(dBehaviour.gameObject, out var disableCatcher))
             {
-                
+                return disableCatcher;
             }
-            else if (_pool.TryPop(out disableCatcher))
-            {
-                disableCatcher.AddOnDispose(dBehaviour);
-                disableCatcher.transform.SetParent(dBehaviour.transform);
-            }
-            else
+            disableCatcher = _pool.FirstOrDefault();
+            _pool.Remove(disableCatcher);
+            if (disableCatcher == null)
             {
                 var obj = new GameObject("DisableCatcher", typeof(DisableCatcher));
-                obj.transform.SetParent(dBehaviour.transform);
                 disableCatcher = obj.GetComponent<DisableCatcher>();
                 disableCatcher.Initialize(this);
                 _disableCatchers.Add(dBehaviour.gameObject, disableCatcher);
             }
             disableCatcher.AddOnDispose(dBehaviour);
+            disableCatcher.transform.SetParent(dBehaviour.transform);
             return disableCatcher;
         }
 
         internal void AddToPool(DisableCatcher disableCatcher)
         {
             disableCatcher.transform.SetParent(_poolTr);
-            _pool.Push(disableCatcher);
+            _pool.Add(disableCatcher);
+        }
+
+        internal void RemoveCatcher(DisableCatcher disableCatcher)
+        {
+            _pool.Remove(disableCatcher);
         }
     }
 }

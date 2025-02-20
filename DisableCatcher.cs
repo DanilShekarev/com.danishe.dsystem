@@ -35,6 +35,7 @@ namespace DSystem
             {
                 dBehaviour.InternalOnDispose();
             }
+            _disableCatchersController.RemoveCatcher(this);
         }
     }
 }

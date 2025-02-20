@@ -1,10 +1,14 @@
 ﻿# Changelog
 
+## [2.5.4] - 2025-02-20
+
+### Fixed
+- Fixed DisableCatchers dispose.
+
 ## [2.5.3] - 2025-02-19
 
 ### Added
 - Support DSystemUtils.
-
 
 ## [2.5.2] - 2025-02-18
 
