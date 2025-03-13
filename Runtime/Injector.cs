@@ -116,7 +116,13 @@ namespace DSystem
             instance = (T)temp;
             return true;
         }
-        public bool TryGetInstance(Type type, out object instance) => _instances.TryGetValue(type, out instance);
+
+        public bool TryGetInstance(Type type, out object instance)
+        {
+            if (!_instances.TryGetValue(type, out instance))
+                instance = CreateAndRegisterInstance(type);
+            return instance != null;
+        } 
 
         public T GetInstance<T>() => (T)GetInstance(typeof(T));
         public object GetInstance(Type type)
