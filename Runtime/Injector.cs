@@ -16,7 +16,7 @@ namespace DSystem
         private readonly Dictionary<Type, object> _instances = new ();
         private readonly List<IUpdatable> _updatables = new ();
         private readonly Dictionary<Type, List<DynamicField>> _injectWaiters = new ();
-        private readonly Dictionary<FieldInfo, DynamicField> _dynamicFields = new();
+        private readonly Dictionary<(FieldInfo f, object instace), DynamicField> _dynamicFields = new();
         
         private readonly IInjectorDebugger _debugger;
 
@@ -73,7 +73,7 @@ namespace DSystem
             if (singletonAttr == null)
             {
                 foreach (var dynamicField in dynamicFields)
-                    _dynamicFields.Remove(dynamicField.Field);
+                    _dynamicFields.Remove((dynamicField.Field, instance));
                 _injectWaiters.Remove(type);
             }
             
@@ -186,7 +186,7 @@ namespace DSystem
         {
             if (instance == null || (instance is UnityEngine.Object obj && obj == null))
             {
-                if (!_dynamicFields.Remove(field, out var dynamicField))
+                if (!_dynamicFields.Remove((field, instance), out var dynamicField))
                     return;
                 
                 dynamicField.Dispose();
@@ -272,7 +272,7 @@ namespace DSystem
                 dynamicFields.Remove(f);
             });
             
-            _dynamicFields.Add(field, dynamicField);
+            _dynamicFields.Add((field, instance), dynamicField);
             
             dynamicFields.Add(dynamicField);
         }
