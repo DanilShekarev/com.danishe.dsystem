@@ -198,7 +198,8 @@ namespace DSystem
             if (inst == null || singletonAttr != null)
             {
                 RegistryWaiter(field, instance, injectAttr);
-                return;
+                if (inst == null)
+                    return;
             }
             
             field.SetValue(instance, inst);
