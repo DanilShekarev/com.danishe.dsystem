@@ -4,9 +4,11 @@ using UnityEngine;
 
 namespace DSystem
 {
+    //TODO: Move class to DSystemUtils
     [AddComponentMenu("Universal Event Invoker (Experimental)")]
     public class UniversalEventInvoker : MonoBehaviour
     {
+        //TODO: Refactor to TypeContainer
         [SerializeField] private string interfaceType;
         [SerializeField] private string fileGUID;
         [SerializeField] private string methodName;
@@ -16,14 +18,14 @@ namespace DSystem
 
         public void Invoke()
         {
-            _type ??= MainInjector.Instance.GetTypeFromName(interfaceType);
+            _type ??= DEntry.GetTypeFromName(interfaceType);
 
             if (_type == null) return;
             
             _method ??= _type.GetMethod(methodName, 
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance);
             
-            MainInjector.Instance.GetDAction(_type)?.Invoke(listener =>
+            DEventSystem.Instance.GetDAction(_type)?.Invoke(listener =>
             {
                 _method.Invoke(listener, new [] {listener});
             });
