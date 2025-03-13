@@ -120,9 +120,9 @@ namespace DSystem
         public bool TryGetInstance(Type type, out object instance)
         {
             if (!_instances.TryGetValue(type, out instance))
-                instance = CreateAndRegisterInstance(type);
+                instance = CreateAndRegisterInstance(type, bypassCheck: true);
             return instance != null;
-        } 
+        }
 
         public T GetInstance<T>() => (T)GetInstance(typeof(T));
         public object GetInstance(Type type)
@@ -166,10 +166,10 @@ namespace DSystem
             return instance;
         }
         
-        public object CreateAndRegisterInstance(Type type, AutoRegistryAttribute reg = null)
+        public object CreateAndRegisterInstance(Type type, AutoRegistryAttribute reg = null, bool bypassCheck = false)
         {
-            if (TryGetInstance(type, out _))
-                return null;
+            if (!bypassCheck && TryGetInstance(type, out var instance))
+                return instance;
             
             reg ??= type.GetCustomAttribute<AutoRegistryAttribute>();
             if (reg == null)
@@ -181,7 +181,7 @@ namespace DSystem
             if (type.IsSubclassOf(typeof(ScriptableObject)))
                 return RegisterScriptable(type);
             
-            var instance = Activator.CreateInstance(type);
+            instance = Activator.CreateInstance(type);
             RegisterInstance(instance, type);
             RegistryInjection(instance, true, false);
 
