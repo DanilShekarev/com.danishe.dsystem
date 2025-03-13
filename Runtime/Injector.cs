@@ -18,6 +18,9 @@ namespace DSystem
         private readonly Dictionary<Type, List<DynamicField>> _injectWaiters = new ();
         private readonly Dictionary<(FieldInfo f, object instace), DynamicField> _dynamicFields = new();
         
+        private List<DynamicField> _currentDynamicFields;
+        private Action _onEndUpdateReferences;
+        
         private readonly IInjectorDebugger _debugger;
 
         public Injector(IInjectorDebugger debugger = null)
@@ -90,9 +93,13 @@ namespace DSystem
             //TODO: Refactor to DAction
             if (!_injectWaiters.TryGetValue(instanceType, out var dynamicFields)) 
                 return true;
-            
+
+            _currentDynamicFields = dynamicFields;
             foreach (var dynamicField in dynamicFields)
                 dynamicField.UpdateReference(null);
+            _currentDynamicFields = null;
+            _onEndUpdateReferences?.Invoke();
+            _onEndUpdateReferences = null;
             
             return true;
         }
@@ -269,7 +276,15 @@ namespace DSystem
 
             var dynamicField = new DynamicField(field, instance, injectAttr, f =>
             {
-                dynamicFields.Remove(f);
+                if (_currentDynamicFields == dynamicFields)
+                {
+                    _onEndUpdateReferences += Remove;
+                    return;
+                }
+                Remove();
+                return;
+
+                void Remove() => dynamicFields.Remove(f);
             });
             
             _dynamicFields.Add((field, instance), dynamicField);
