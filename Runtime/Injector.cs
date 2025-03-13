@@ -61,16 +61,41 @@ namespace DSystem
         public bool RegisterInstance(object instance, Type type = null)
         {
             type ??= instance.GetType();
-            bool success = _instances.TryAdd(instance.GetType(), instance);
-            if (!success)
+            if (!_instances.TryAdd(instance.GetType(), instance))
+                return false;
+
+            UpdateReferences(type, instance);
+            
+            return true;
+        }
+        public bool RemoveInstance<T>()=> RemoveInstance(typeof(T));
+
+        public bool RemoveInstance(Type instanceType)
+        {
+            if (!_instances.Remove(instanceType))
                 return false;
             
+            UpdateReferences(instanceType, null);
+            return true;
+        }
+
+        private void UpdateReferences(Type type, object instance)
+        {
             //TODO: Refactor to DAction
-            if (!_injectWaiters.TryGetValue(type, out var dynamicFields))
-                return true;
-        
+            if (!_injectWaiters.TryGetValue(type, out var dynamicFields)) 
+                return;
+
+            _currentDynamicFields = dynamicFields;
+            
             foreach (var dynamicField in dynamicFields)
                 dynamicField.UpdateReference(instance);
+            
+            _currentDynamicFields = null;
+            _onEndUpdateReferences?.Invoke();
+            _onEndUpdateReferences = null;
+            
+            if (instance == null) 
+                return;
             
             var singletonAttr = type.GetCustomAttribute<DynamicSingletonAttribute>();
             if (singletonAttr == null)
@@ -79,29 +104,6 @@ namespace DSystem
                     _dynamicFields.Remove((dynamicField.Field, instance));
                 _injectWaiters.Remove(type);
             }
-            
-            return true;
-        }
-        public bool RemoveInstance<T>()=> RemoveInstance(typeof(T));
-
-        public bool RemoveInstance(Type instanceType)
-        {
-            bool success = _instances.Remove(instanceType);
-            if (!success)
-                return false;
-           
-            //TODO: Refactor to DAction
-            if (!_injectWaiters.TryGetValue(instanceType, out var dynamicFields)) 
-                return true;
-
-            _currentDynamicFields = dynamicFields;
-            foreach (var dynamicField in dynamicFields)
-                dynamicField.UpdateReference(null);
-            _currentDynamicFields = null;
-            _onEndUpdateReferences?.Invoke();
-            _onEndUpdateReferences = null;
-            
-            return true;
         }
 
         public bool TryGetInstance<T>(out T instance)
