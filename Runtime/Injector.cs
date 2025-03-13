@@ -171,7 +171,7 @@ namespace DSystem
             RegistryInjection(instance, true, false);
 
             if (instance is DSystemBase { AutoRegistrationEvents: true })
-                DEventSystem.Instance.Subscribe(this);
+                DEventSystem.Instance.Subscribe(instance);
             
             if (instance is IInitializable startable)
                 startable.Initialize();
