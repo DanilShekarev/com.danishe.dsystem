@@ -44,7 +44,7 @@ namespace DSystem
                     Debug.LogWarning($"The system {instance.GetType().Name} has a local event {inter.Name}!");
                     continue;
                 }
-                GetDAction(inter).RegistryListener(this);
+                GetDAction(inter).RegistryListener(instance);
             }
         }
     }
