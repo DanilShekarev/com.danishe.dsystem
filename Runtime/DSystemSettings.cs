@@ -9,7 +9,9 @@ namespace DSystem
         {
             get
             {
-                _instance ??= Resources.LoadAll<DSystemSettings>("")[0];
+                var array = Resources.LoadAll<DSystemSettings>(""); 
+                if (array is { Length: > 0 })
+                    _instance ??= array[0];
                 if (_instance == null)
                 {
                     _instance = CreateInstance<DSystemSettings>();
