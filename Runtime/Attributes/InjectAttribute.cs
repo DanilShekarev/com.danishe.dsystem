@@ -5,7 +5,7 @@ namespace DSystem
     [Flags]
     public enum InjectParams
     {
-        None = 0, IncludeInactive = 1, UseGlobal = 2
+        None = 0, IncludeInactive = 1, UseGlobal = 2, GetInParents = 4
     }
     
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]

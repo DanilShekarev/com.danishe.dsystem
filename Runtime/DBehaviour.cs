@@ -24,15 +24,17 @@ namespace DSystem
             if (_initialized) return;
             _initialized = true;
             
-            MainInjector.Instance.RegistryInjection(this);
+            var injector = Injector.Instance;
+            
+            injector.RegistryInjection(this);
             var type = GetType();
             var singletonAttr = type.GetCustomAttribute<SingletonAttribute>(true);
             if (singletonAttr != null)
             {
-                MainInjector.Instance.RegistrySingleton(this);
+                injector.RegisterInstance(this);
                 _onDestroy += () =>
                 {
-                    MainInjector.Instance.RemoveSingleton(this);
+                    injector.RemoveInstance(GetType());
                 };
             }
 
@@ -69,7 +71,7 @@ namespace DSystem
                     }
                     continue;
                 }
-                var daction = MainInjector.Instance.GetDAction(inter);
+                var daction = DEventSystem.Instance.GetDAction(inter);
                 daction.RegistryListener(this);
                 _onDestroy += () =>
                 {
@@ -119,7 +121,8 @@ namespace DSystem
 
             if (!gameObject.activeInHierarchy)
             {
-                if (!MainInjector.Instance.TryGetSystem(out DisableCatchersController disableCatchersController)) return;
+                if (!Injector.Instance.TryGetInstance(out DisableCatchersController disableCatchersController))
+                    return;
                 _disableCatcher = disableCatchersController.RegistryForceOnDestroy(this);
             }
 

@@ -24,5 +24,16 @@ namespace DSystem.Utils
                 }
             }
         }
+
+        public static MethodInfo GetOnInjectMethod(this Type type, InjectAttribute injectAttribute)
+        {
+            if (!string.IsNullOrEmpty(injectAttribute.EventName))
+            {
+                return type.GetMethod(injectAttribute.EventName,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly |
+                    BindingFlags.Instance);
+            }
+            return null;
+        }
     }
 }

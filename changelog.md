@@ -1,5 +1,24 @@
 ﻿# Changelog
 
+## [2.6.0] - 2025-03-13
+
+### Added
+- InjectParams flag for get components in parent.
+- DAction short invoke function `GetDAction<T>(Action<T>, bool createInstance)`.
+- `DEventSystem` method `Subscribe(object instance)` for subscribe all interfaces.
+- `DSystemBase` property `AutoRegistrationEvents`. 
+- System initialize order debug window.
+- More error logs.
+
+### Deprecated
+- `AutoRegistryAttribute` argument `ScriptableName`.
+- **Injector**: The following methods are now deprecated:
+  - `TryGetSystem` renamed to `TryGetInstance`
+  - `TryGetSystem<T>` renamed to `TryGetInstance<T>`
+  - `RegistrySingleton` renamed to `RegisterInstance`
+  - `GetDAction<T>` moved to **DEventSystem**
+  - `GetDAction` moved to **DEventSystem**
+
 ## [2.5.4] - 2025-02-20
 
 ### Fixed
