@@ -153,7 +153,16 @@ namespace DSystem
         private static void Configure(Assembly assembly)
         {
             foreach (var pair in GetTypes(assembly))
-                _injector.CreateAndRegisterInstance(pair.type, pair.reg);
+            {
+                try
+                {
+                    _injector.CreateAndRegisterInstance(pair.type, pair.reg);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
         
             var scriptableCount = _injector.Instances.Count(i => 
                 i.Key.IsSubclassOf(typeof(ScriptableObject)));

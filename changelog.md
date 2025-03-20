@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## [2.6.1] - 2025-03-20
+
+### Fixed
+- Fixed create singleton classes exception catch.
+
 ## [2.6.0] - 2025-03-13
 
 ### Added
