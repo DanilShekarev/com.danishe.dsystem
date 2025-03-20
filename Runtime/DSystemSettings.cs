@@ -33,6 +33,7 @@ namespace DSystem
 
         [SerializeField] private string[] assembliesToInject;
 
+#if UNITY_EDITOR
         private void OnValidate()
         {
             if (assembliesToInject == null || assembliesToInject.Length == 0)
@@ -44,5 +45,6 @@ namespace DSystem
                 };
             }
         }
+#endif
     }
 }
