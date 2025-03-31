@@ -38,8 +38,6 @@ namespace DSystem
             FirstStepInitialize(_injectorDebugger);
             #endif
             
-            Configure();
-            
             SceneManager.sceneLoaded += LoadedScene;
             
             var playerLoop = PlayerLoop.GetCurrentPlayerLoop();
@@ -64,6 +62,12 @@ namespace DSystem
             playerLoop.subSystemList[5].subSystemList = systems;
             
             PlayerLoop.SetPlayerLoop(playerLoop);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void InitializeSystems()
+        {
+            Configure();
         }
 
         private static void OnUpdate()

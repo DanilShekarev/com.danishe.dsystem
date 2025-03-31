@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 
 namespace DSystem.Utils
@@ -18,9 +19,15 @@ namespace DSystem.Utils
 
             if (isArray)
             {
+                Component[] components;
                 if (isParent)
-                    return mono.GetComponentsInParent(fType, includeInactive);
-                return mono.GetComponentsInChildren(fType, includeInactive);
+                    components = mono.GetComponentsInParent(fType, includeInactive);
+                else
+                    components = mono.GetComponentsInChildren(fType, includeInactive);
+
+                var newArray = Array.CreateInstance(fType, components.Length);
+                Array.Copy(components, 0, newArray, 0, components.Length);
+                return newArray;
             }
             if (isParent)
                 return mono.GetComponentInParent(fType, includeInactive);

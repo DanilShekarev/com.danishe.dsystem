@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace DSystem
 {
-    public class DSystemSettings : ScriptableObject
+    public class DSystemSettings : ScriptableObject, ISerializationCallbackReceiver
     {
         public static DSystemSettings Instance
         {
@@ -33,8 +33,12 @@ namespace DSystem
 
         [SerializeField] private string[] assembliesToInject;
 
-#if UNITY_EDITOR
-        private void OnValidate()
+        public void OnBeforeSerialize()
+        {
+            
+        }
+
+        public void OnAfterDeserialize()
         {
             if (assembliesToInject == null || assembliesToInject.Length == 0)
             {
@@ -45,6 +49,5 @@ namespace DSystem
                 };
             }
         }
-#endif
     }
 }

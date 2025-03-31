@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## [2.6.2] - 2025-03-31
+
+### Fixed
+- Initialize systems new entry point. Now before scene load.
+- Fix inject array components.
+
 ## [2.6.1] - 2025-03-20
 
 ### Fixed
