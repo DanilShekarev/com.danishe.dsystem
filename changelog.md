@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## [2.6.3] - 2025-04-02
+
+### Fixed
+- Injection callback with parent class
+
 ## [2.6.2] - 2025-03-31
 
 ### Fixed

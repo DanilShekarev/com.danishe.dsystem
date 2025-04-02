@@ -27,11 +27,18 @@ namespace DSystem.Utils
 
         public static MethodInfo GetOnInjectMethod(this Type type, InjectAttribute injectAttribute)
         {
-            if (!string.IsNullOrEmpty(injectAttribute.EventName))
+            if (string.IsNullOrEmpty(injectAttribute.EventName))
+                return null;
+
+            var tempType = type;
+            while (tempType != null)
             {
-                return type.GetMethod(injectAttribute.EventName,
+                var method = tempType.GetMethod(injectAttribute.EventName,
                     BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly |
                     BindingFlags.Instance);
+                if (method != null)
+                    return method;
+                tempType = tempType.BaseType;
             }
             return null;
         }
