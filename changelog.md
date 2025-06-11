@@ -1,5 +1,16 @@
 ﻿# Changelog
 
+## [2.6.4] - 2025-06-11
+
+### Fixed
+- `DAction` exit from public scope.
+
+### Improvement
+- `DBehaviour` add AutoManageSubscriptions override for off OnEnable/Disable un/subscribe events.
+- **DAction**:
+  - add method `RemoveHandler(EventHandler<T> handler)`.
+  - Caching handlers for better performance.
+
 ## [2.6.3] - 2025-04-02
 
 ### Fixed

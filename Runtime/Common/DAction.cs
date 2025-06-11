@@ -10,12 +10,15 @@ namespace DSystem
     {
         private readonly List<Action<T>> _catchers = new ();
         private readonly List<Action<T>> _unsubscribeCatchers = new ();
-        private readonly List<EventHandler<T>> _handlers = new ();
+        
+        private List<EventHandler<T>> _handlers;
+        private EventHandler<T> _firstHandler, _lastHandler;
+        
         private readonly List<T> _listeners = new ();
         
-        public readonly Queue<T> NewListeners = new ();
-        public readonly Queue<T> RemovedListeners = new ();
-        public int Active;
+        private readonly Queue<T> _newListeners = new ();
+        private readonly Queue<T> _removedListeners = new ();
+        private int _active;
         
         void IDAction.Invoke(Action<object> action) => Invoke(action);
         IEnumerator<object> IDAction.GetEnumerator() => GetEnumerator();
@@ -25,25 +28,24 @@ namespace DSystem
             => RegistryCatcher(onCatchListener);
         UnsubscribeToken IDAction.RegistryUnsubscribeCatcher(Action<object> onRemoveListener)
             => RegistryUnsubscribeCatcher(onRemoveListener);
+        public bool RegisterHandler(EventHandler<object> handler) => RegisterHandler(handler as EventHandler<T>);
+        public bool RemoveHandler(EventHandler<object> handler) => RemoveHandler(handler as EventHandler<T>);
 
         public void Invoke(Action<T> action)
         {
-            Active++;
+            _active++;
             foreach (var listener in _listeners)
             {
-                var lastHandler = listener;
-                if (_handlers.Count > 0)
+                var firstHandler = listener;
+                if (_lastHandler != null)
                 {
-                    foreach (var handler in _handlers.OrderByDescending(h => h.GetPriority()))
-                    {
-                        handler.Listener = lastHandler;
-                        lastHandler = handler as T;
-                    }
+                    _lastHandler.Listener = firstHandler;
+                    firstHandler = _firstHandler as T;
                 }
 
                 try
                 {
-                    action.Invoke(lastHandler);
+                    action.Invoke(firstHandler);
                 }
                 catch (Exception e)
                 {
@@ -51,17 +53,17 @@ namespace DSystem
                 }
             }
 
-            Active--;
+            _active--;
             
-            if (Active != 0)
+            if (_active != 0)
                 return;
             
-            while (RemovedListeners.TryDequeue(out var listener))
+            while (_removedListeners.TryDequeue(out var listener))
             {
                 RemoveListener(listener);
             }
                 
-            while (NewListeners.TryDequeue(out var listener))
+            while (_newListeners.TryDequeue(out var listener))
             {
                 RegistryListener(listener);
             }
@@ -71,16 +73,14 @@ namespace DSystem
         {
             foreach (var listener in _listeners)
             {
-                var lastHandler = listener;
-                if (_handlers.Count > 0)
+                var firstHandler = listener;
+                if (_lastHandler != null)
                 {
-                    foreach (var handler in _handlers.OrderByDescending(h => h.GetPriority()))
-                    {
-                        handler.Listener = lastHandler;
-                        lastHandler = handler as T;
-                    }
+                    _lastHandler.Listener = firstHandler;
+                    firstHandler = _firstHandler as T;
                 }
-                yield return lastHandler;
+                
+                yield return firstHandler;
             }
         }
 
@@ -94,11 +94,11 @@ namespace DSystem
             if (_listeners.Contains(listener)) 
                 return RegistryResult.TryAddExist;
             
-            if (Active >= 1)
+            if (_active >= 1)
             {
-                if (NewListeners.Contains(listener)) 
+                if (_newListeners.Contains(listener)) 
                     return RegistryResult.CurrentlyWaitedAdd;
-                NewListeners.Enqueue(listener);
+                _newListeners.Enqueue(listener);
                 return RegistryResult.WaitToAdd;
             }
             _listeners.Add(listener);
@@ -108,11 +108,11 @@ namespace DSystem
 
         public void RemoveListener(T listener)
         {
-            if (Active >= 1)
+            if (_active >= 1)
             {
-                if (RemovedListeners.Contains(listener))
+                if (_removedListeners.Contains(listener))
                     return;
-                RemovedListeners.Enqueue(listener);
+                _removedListeners.Enqueue(listener);
                 return;
             }
             InvokeRemoveCatchers(listener);
@@ -127,10 +127,47 @@ namespace DSystem
 
         public bool RegisterHandler(EventHandler<T> handler)
         {
+            _handlers ??= new();
             if (_handlers.Contains(handler))
                 return false;
             _handlers.Add(handler);
+            UpdateHandlers();
             return true;
+        }
+        
+        public bool RemoveHandler(EventHandler<T> handler)
+        {
+            if (_handlers == null)
+                return false;
+            
+            if (!_handlers.Remove(handler))
+                return false;
+            UpdateHandlers();
+            return true;
+        }
+
+        private void UpdateHandlers()
+        {
+            if (_handlers.Count == 0)
+            {
+                _firstHandler = null;
+                _lastHandler = null;
+                _handlers = null;
+                return;
+            }
+            int i = 0;
+            T lastHandler = null;
+            foreach (var handler in _handlers.OrderByDescending(h => h.GetPriority()))
+            {
+                if (i == 0)
+                    _lastHandler = handler;
+                else
+                    handler.Listener = lastHandler;
+                
+                lastHandler = handler as T;
+                i++;
+            }
+            _firstHandler = lastHandler as EventHandler<T>;
         }
 
         private UnsubscribeToken InternalRegistryCatcher(Action<T> onCatchListener, List<Action<T>> catchers)

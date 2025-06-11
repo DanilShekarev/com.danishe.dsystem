@@ -9,6 +9,8 @@ namespace DSystem
 {
     public abstract class DBehaviour : MonoBehaviour
     {
+        protected virtual bool AutoManageSubscriptions => true;
+        
         private bool _initialized;
 
         private Dictionary<Type, IDAction> _actions;
@@ -142,12 +144,14 @@ namespace DSystem
 
         protected virtual void OnEnable()
         {
-            _onEnable?.Invoke();
+            if (AutoManageSubscriptions)
+                _onEnable?.Invoke();
         }
 
         protected virtual void OnDisable()
         {
-            _onDisable?.Invoke();
+            if (AutoManageSubscriptions)
+                _onDisable?.Invoke();
         }
 
         protected virtual void OnInitialize() { }
