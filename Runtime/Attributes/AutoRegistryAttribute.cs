@@ -8,24 +8,17 @@ namespace DSystem
         public readonly int Order;
         public readonly RegistryFlags Flags;
         
-        public AutoRegistryAttribute()
-        {
-            
-        }
+        public AutoRegistryAttribute() { }
 
         public AutoRegistryAttribute(int order = 0)
         {
             Order = order;
         }
 
-        public AutoRegistryAttribute(int order = 0, RegistryFlags flags = RegistryFlags.None)
+        public AutoRegistryAttribute(int order = 0, RegistryFlags flags = RegistryFlags.None) : this(order)
         {
-            Order = order;
             Flags = flags;
         }
-        
-        [Obsolete]
-        public AutoRegistryAttribute(string fileScriptable) {}
     }
 
     [Flags]

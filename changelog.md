@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## [2.6.5] - 2025-08-07
+
+### Improvement
+- Add `EventListenerAttribute` for ordering listeners.
+
 ## [2.6.4] - 2025-06-11
 
 ### Fixed

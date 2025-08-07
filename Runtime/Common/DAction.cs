@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace DSystem
 {
@@ -101,9 +102,34 @@ namespace DSystem
                 _newListeners.Enqueue(listener);
                 return RegistryResult.WaitToAdd;
             }
+            
             _listeners.Add(listener);
+            OrderingListeners();
             InvokeCatchers(listener);
             return RegistryResult.Added;
+        }
+
+        private void OrderingListeners()
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            // _listeners.OrderBy(listener =>
+            // {
+            //     var attr = AssemblyDataCacher.GetEventListenerAttribute(listener.GetType());
+            //     int order = short.MaxValue;
+            //     order |= (int)attr.ListenerFlags << 16;
+            //     return order;
+            // });
+            _listeners.Sort((a, b) => GetOrder(a).CompareTo(GetOrder(b)));
+            stopwatch.Stop();
+            Debug.Log($"Ordering listeners: {stopwatch.ElapsedMilliseconds}ms");
+        }
+
+        private static int GetOrder(object t)
+        {
+            var attr = AssemblyDataCacher.GetEventListenerAttribute(t.GetType());
+            int order = short.MaxValue;
+            order |= (int)attr.ListenerFlags << 16;
+            return order;
         }
 
         public void RemoveListener(T listener)
