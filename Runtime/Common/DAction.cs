@@ -127,6 +127,9 @@ namespace DSystem
         private static int GetOrder(object t)
         {
             var attr = AssemblyDataCacher.GetEventListenerAttribute(t.GetType());
+            if (attr == null)
+                return short.MaxValue;
+            
             int order = short.MaxValue;
             order |= (int)attr.ListenerFlags << 16;
             return order;
