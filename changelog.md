@@ -5,6 +5,9 @@
 ### Improvement
 - Add `EventListenerAttribute` for ordering listeners.
 
+### Fixed
+- Correct listener order index calculation in `DAction`.
+
 ## [2.6.4] - 2025-06-11
 
 ### Fixed
