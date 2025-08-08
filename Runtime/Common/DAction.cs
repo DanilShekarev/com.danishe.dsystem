@@ -128,11 +128,11 @@ namespace DSystem
         {
             var attr = AssemblyDataCacher.GetEventListenerAttribute(t.GetType());
             if (attr == null)
-                return short.MaxValue;
-            
-            int order = short.MaxValue;
-            order |= (int)attr.ListenerFlags << 16;
-            return order;
+                return ushort.MaxValue;
+
+            var flags = (int)attr.ListenerFlags;
+            var order = attr.Order - short.MinValue;
+            return (flags << 16) | order;
         }
 
         public void RemoveListener(T listener)
