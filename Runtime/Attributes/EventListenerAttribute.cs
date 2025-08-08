@@ -26,8 +26,8 @@ namespace DSystem
     
     
     [Flags]
-    public enum ListenerFlags
+    public enum ListenerFlags : short
     {
-        None = 0, RiseEvent = 1, ChangeState = 2, DestroyObj = 4
+        First = short.MinValue, None = 0, RiseEvent = 1, ChangeState = 2, DestroyObj = 4, Last = short.MaxValue
     }
 }
