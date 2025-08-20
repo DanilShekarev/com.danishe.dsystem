@@ -21,21 +21,19 @@ namespace DSystem.InternalSystems
 
         internal DisableCatcher RegistryForceOnDestroy(DBehaviour dBehaviour)
         {
-            if (_disableCatchers.TryGetValue(dBehaviour.gameObject, out var disableCatcher))
+            if (!_disableCatchers.TryGetValue(dBehaviour.gameObject, out var disableCatcher))
             {
-                return disableCatcher;
-            }
-            disableCatcher = _pool.FirstOrDefault();
-            _pool.Remove(disableCatcher);
-            if (disableCatcher == null)
-            {
+                disableCatcher = _pool.FirstOrDefault();
+                _pool.Remove(disableCatcher);
+                
                 var obj = new GameObject("DisableCatcher", typeof(DisableCatcher));
                 disableCatcher = obj.GetComponent<DisableCatcher>();
                 disableCatcher.Initialize(this);
                 _disableCatchers.Add(dBehaviour.gameObject, disableCatcher);
+                disableCatcher.transform.SetParent(dBehaviour.transform);
             }
+
             disableCatcher.AddOnDispose(dBehaviour);
-            disableCatcher.transform.SetParent(dBehaviour.transform);
             return disableCatcher;
         }
 

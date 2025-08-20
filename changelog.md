@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## [2.6.6] - 2025-08-20
+
+### Fixed
+- Fix DisableInitialize DBehaviours Dispose callback from multiple instances on one GameObject.
+
 ## [2.6.5] - 2025-08-07
 
 ### Improvement
