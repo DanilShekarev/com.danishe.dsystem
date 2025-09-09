@@ -111,17 +111,7 @@ namespace DSystem
 
         private void OrderingListeners()
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            // _listeners.OrderBy(listener =>
-            // {
-            //     var attr = AssemblyDataCacher.GetEventListenerAttribute(listener.GetType());
-            //     int order = short.MaxValue;
-            //     order |= (int)attr.ListenerFlags << 16;
-            //     return order;
-            // });
             _listeners.Sort((a, b) => GetOrder(a).CompareTo(GetOrder(b)));
-            stopwatch.Stop();
-            Debug.Log($"Ordering listeners: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         private static int GetOrder(object t)
