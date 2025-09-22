@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## [2.6.7] - 2025-09-22
+
+### Added
+- Can inject DAction.
+
 ## [2.6.6] - 2025-08-20
 
 ### Fixed

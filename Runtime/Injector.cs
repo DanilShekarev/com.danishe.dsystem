@@ -10,6 +10,7 @@ namespace DSystem
     public class Injector : IDisposable
     {
         public static Injector Instance { get; internal set; }
+        private static readonly Type DActionType = typeof(IDAction);
         
         internal IReadOnlyDictionary<Type, object> Instances => _instances;
         
@@ -22,7 +23,7 @@ namespace DSystem
         private Action _onEndUpdateReferences;
         
         private readonly IInjectorDebugger _debugger;
-
+        
         public Injector(IInjectorDebugger debugger = null)
         {
             _debugger = debugger;
@@ -246,7 +247,25 @@ namespace DSystem
                     continue;
 
                 object inst;
-                if (fType.IsSubclassOf(typeof(Component)))
+                if (DActionType.IsAssignableFrom(fType))
+                {
+                    var genericType = fType.GetGenericArguments()[0];
+                    if (!isComponent | injectAttr.Params.HasFlag(InjectParams.UseGlobal))
+                        inst = DEventSystem.Instance.GetDAction(genericType);
+                    else
+                    {
+                        if (instance is DBehaviour dBehaviour)
+                        {
+                            inst = dBehaviour.GetDAction(genericType);
+                        }
+                        else
+                        {
+                            Debug.LogWarning("Trying injection DAction on no DBehaviour!");
+                            inst = null;
+                        }
+                    }
+                }
+                else if (fType.IsSubclassOf(typeof(Component)))
                 {
                     if (!isComponent | injectAttr.Params.HasFlag(InjectParams.UseGlobal))
                     {
@@ -261,7 +280,8 @@ namespace DSystem
                             continue;   
                         }
                     }
-                } else if (!TryGetInstance(field.FieldType, out inst))
+                } 
+                else if (!TryGetInstance(field.FieldType, out inst))
                 {
                     var singletonAttr = field.FieldType.GetCustomAttribute<DynamicSingletonAttribute>();
                     if (singletonAttr == null)
