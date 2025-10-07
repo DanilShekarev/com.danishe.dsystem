@@ -27,7 +27,7 @@ namespace DSystem
             
             DEventSystem.Instance.GetDAction(_type)?.Invoke(listener =>
             {
-                _method.Invoke(listener, new [] {listener});
+                _method.Invoke(listener, new object[] {});
             });
         }
     }

@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## [2.6.8] - 2025-10-07
+### Fixed
+- Fix broken UniversalEventInvoker.
+
 ## [2.6.7] - 2025-09-22
 
 ### Added
